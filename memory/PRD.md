@@ -1,37 +1,41 @@
-# LUXÉLLE — Ultra-Premium Luxury Skincare & Niche Perfume E-commerce
+# Beauty Am Schloss — Haute Parfumerie & Medical Skincare Maison
 
 ## Original Problem Statement
-Create an ultra-premium luxury skincare & niche perfume e-commerce website like shop2.beauty-am-schloss.de but even more elegant.
-Brand: LUXÉLLE. Palette: cream white (#f9f7f4), warm beige, subtle gold (#d4af37), Playfair Display serif.
-Hero tagline: "Schönheit, die man spürt."
-Maisons: Doctor Babor, Mesoestetic, Boadicea the Victorious, Fragrance Du Bois.
+Originally LUXÉLLE; rebranded fully to **Beauty Am Schloss** with Parfum as the primary focus,
+Doctor Babor & Mesoestetic moved to secondary skincare category. Refined palette, upgraded
+typography, true luxury pricing, exclusive product names & descriptions, reviews & trust signals,
+cart drawer, improved hero/footer/cards/mobile.
 
 ## Architecture
-- Backend: FastAPI + MongoDB. Endpoints: /api/brands, /api/products(?filter=new|bestseller), /api/newsletter.
-- Frontend: React (CRACO) + Tailwind. Fonts: Playfair Display + Montserrat. Sonner toasts. Lucide icons.
-- Single-page layout in German, fully responsive, smooth section scroll.
+- Backend: FastAPI + MongoDB. Endpoints: `/api/brands?category=`, `/api/products?category=&filter=`, `/api/reviews`, `/api/newsletter`.
+- Frontend: React (CRACO) + Tailwind. Fonts: Cormorant Garamond (display), Italiana (accents), Inter (body).
+- Color palette: ivory `#f5f0e8`, espresso `#1c1714`, antique brass `#a8814a`, bordeaux `#5a1d24`.
 
-## Implemented (2026-02)
-- Sticky luxury navigation with brand marquee top bar, smooth scroll to sections
-- Cinematic hero (Schönheit, die man spürt.) with stats, CTAs, vertical brand text
-- Trust signals row (4 columns with lucide icons)
-- "Nach Maison entdecken" — 4 brand cards with overlay, hover zoom, rotating arrow
-- Newest products grid (4 high-end product cards with hover Add-to-cart)
-- Medical Beauty Philosophy editorial section (50/50 + pull quote card + 3 pillars)
-- Bestsellers grid (4 cards)
-- Newsletter (POST /api/newsletter, persists to Mongo, duplicate detection)
-- Luxury footer with Maison/Service/Maisons/Concierge columns
+## Implemented (Iter 2 — 2026-02)
+- Full rebrand to Beauty Am Schloss (logo: "BEAUTY *am* SCHLOSS" with crest)
+- Parfum-first content: 4 haute maisons (Boadicea, Fragrance Du Bois, Roja, Xerjoff) + 8 perfumes (€365–€920)
+- Doctor Babor + Mesoestetic now secondary skincare section (4 products)
+- New cinematic dark hero "Düfte, die Geschichte tragen." with marquee announcements
+- Trust signals row including "Handcrafted in Europe / Authorised Maison Retailer"
+- Upgraded product cards: tag, brand, star rating + review count, name, italic subtitle, fragrance notes, price, size, hover quick-add + inline add button
+- Customer reviews section (3 testimonials, 4.9★ rating, 1.840 verified)
+- Philosophy with Givenchy quote
+- Cart drawer (Sheet) "Ihr Cabinet" with qty controls, free-shipping progress bar, checkout CTA
+- Upgraded footer with Berlin/Charlottenburg address, concierge phone, social icons in framed buttons
+- Italiana micro-typography (N°I … N°VII section numbering)
+- Refined animations: smooth img-hover (1.6s ease), shimmer gold text, fade-up reveal
 
 ## Validated
-- 100% backend pytest pass (7/7)
-- 100% frontend e2e pass (nav scroll, CTAs, forms, mobile menu, toasts)
+- 100% backend pytest (11/11)
+- 100% frontend e2e (cart, nav, scroll, newsletter, mobile menu, reviews)
 
 ## Backlog / Next Phase
-- P1: Product detail pages with full description, ingredients, reviews
-- P1: Cart drawer + checkout (Stripe integration)
-- P1: Brand landing pages with hero + product grid filtered by maison
-- P2: Search overlay (lx-nav-search)
-- P2: Account/auth (Emergent Google OAuth)
-- P2: Admin panel for product CRUD (replace hardcoded seed)
-- P2: i18n switch (DE/EN)
-- P3: Wishlist, sample gift mechanic
+- P1: Product detail pages with full description, ingredients, full reviews
+- P1: Stripe checkout integration (cart -> payment)
+- P1: LocalStorage persistence for cart
+- P2: Per-Maison landing pages
+- P2: Search overlay
+- P2: Account / Google auth (Emergent)
+- P2: Admin panel for product CRUD
+- P3: i18n DE/EN toggle
+- P3: Sample-gift selector at checkout

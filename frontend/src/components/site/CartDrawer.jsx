@@ -1,4 +1,4 @@
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { useCart, formatEUR } from "@/lib/cart";
 import { X, Plus, Minus, ShoppingBag, ArrowRight, Gift } from "lucide-react";
 
@@ -15,6 +15,8 @@ export default function CartDrawer({ open, onOpenChange }) {
         className="w-full sm:max-w-[460px] bg-[#f5f0e8] text-[#1c1714] border-l border-[#ddd2bf] p-0 [&>button]:hidden"
         data-testid="bas-cart-drawer"
       >
+        <SheetTitle className="sr-only">Warenkorb</SheetTitle>
+        <SheetDescription className="sr-only">Ihre ausgewählten Parfums und Pflege-Stücke.</SheetDescription>
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="px-7 pt-9 pb-6 border-b border-[#ddd2bf]">
