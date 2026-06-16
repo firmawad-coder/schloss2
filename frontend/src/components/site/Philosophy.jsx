@@ -1,7 +1,7 @@
 import { ArrowRight } from "lucide-react";
 
 const PILLARS = [
-  { num: "01", title: "Olfaktorische Kuratierung", text: "Jedes Parfum wird von unseren Maison-Experten persönlich getestet — wir empfehlen nur, was uns bewegt." },
+  { num: "01", title: "Olfaktorische Kuratierung", text: "Jedes Parfum wird von unseren Parfumeurs persönlich getestet — wir empfehlen nur, was uns bewegt." },
   { num: "02", title: "Handcrafted in Europe", text: "Vom Flakon bis zur Geschenkbox: alles gefertigt und veredelt in europäischen Ateliers." },
   { num: "03", title: "Diskretion & Concierge", text: "Persönliche Beratung, signierte Beipackkarten, anonyme Lieferung auf Wunsch." },
 ];

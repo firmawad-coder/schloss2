@@ -7,7 +7,7 @@ export default function Hero() {
       <div className="absolute inset-0">
         <img
           src="https://images.unsplash.com/photo-1615368144592-35d2b37fa49b?crop=entropy&cs=srgb&fm=jpg&w=2000&q=92"
-          alt="Beauty Am Schloss — Maison de Parfum"
+          alt="Beauty Am Schloss — Haute Parfumerie"
           className="absolute inset-0 w-full h-full object-cover opacity-95 bas-fade-in"
         />
         <div className="absolute inset-0 bg-gradient-to-br from-[#1c1714]/95 via-[#1c1714]/55 to-transparent" />
@@ -17,7 +17,7 @@ export default function Hero() {
 
       {/* Vertical brand */}
       <div className="hidden xl:flex absolute left-8 top-1/2 -translate-y-1/2 [writing-mode:vertical-rl] rotate-180 text-[10px] tracking-[0.4em] uppercase text-[#ddd2bf]/60 z-10">
-        <span>Maison de Parfum · Privatkundenhaus · Berlin · Est. 1894</span>
+        <span>Haute Parfumerie · Privatkundenhaus · Berlin · Est. 1894</span>
       </div>
 
       {/* Right ornament */}
@@ -40,8 +40,8 @@ export default function Hero() {
           </h1>
 
           <p className="text-[#ddd2bf]/80 text-base lg:text-[17px] leading-[1.85] font-light max-w-[520px] mb-14">
-            Eine private Maison für die seltensten Parfums der Welt — handverlesen
-            aus den Häusern Roja, Xerjoff, Boadicea und Fragrance Du Bois.
+            Beauty Am Schloss — ein privates Haus für die seltensten Parfums der Welt.
+            Handverlesen aus den Häusern Roja, Xerjoff, Boadicea und Fragrance Du Bois.
             Jedes Flakon ein Manuskript. Jeder Tropfen eine Signatur.
           </p>
 
@@ -55,18 +55,18 @@ export default function Hero() {
               <ArrowRight size={14} strokeWidth={1.4} className="group-hover:translate-x-1 transition-transform duration-500" />
             </button>
             <button
-              onClick={() => document.getElementById("maisons")?.scrollIntoView({ behavior: "smooth" })}
+              onClick={() => document.getElementById("haeuser")?.scrollIntoView({ behavior: "smooth" })}
               className="inline-flex items-center justify-center gap-4 border border-[#ddd2bf]/40 text-[#f5f0e8] hover:bg-[#f5f0e8]/10 hover:border-[#a8814a] transition-all duration-700 px-10 py-[18px] uppercase text-[11px] tracking-[0.32em]"
               data-testid="bas-hero-cta-secondary"
             >
-              Unsere Maisons
+              Unsere Häuser
             </button>
           </div>
 
           <div className="flex items-end gap-10 lg:gap-14 text-[#ddd2bf]">
             <div>
               <div className="font-display text-3xl lg:text-4xl text-[#f5f0e8] font-light">04</div>
-              <div className="text-[10px] tracking-[0.3em] uppercase mt-2 text-[#a8814a]">Haute Maisons</div>
+              <div className="text-[10px] tracking-[0.3em] uppercase mt-2 text-[#a8814a]">Haute Parfumerie</div>
             </div>
             <span className="w-px h-12 bg-[#ddd2bf]/25" />
             <div>

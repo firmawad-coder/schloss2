@@ -48,7 +48,7 @@ class Brand(BaseModel):
 
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
-    house: str  # short label e.g. "Maison de Parfum"
+    house: str  # short label e.g. "Haute Parfumerie"
     tagline: str
     origin: str
     established: str
@@ -67,7 +67,7 @@ class NewsletterEntry(BaseModel):
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
-# ---------- Seed: Parfum-Maisons (Primary) + Pflege (Secondary) ----------
+# ---------- Seed: Parfum-Häuser (Primary) + Pflege (Secondary) ----------
 BRANDS_SEED = [
     {
         "name": "Boadicea the Victorious",
@@ -81,7 +81,7 @@ BRANDS_SEED = [
     },
     {
         "name": "Fragrance Du Bois",
-        "house": "Maison d'Oud",
+        "house": "Haus des Oud",
         "tagline": "Reines Wild-Oud aus eigenen Plantagen Südostasiens.",
         "origin": "Singapur",
         "established": "2014",
@@ -145,7 +145,7 @@ PRODUCTS_SEED = [
         "price": 420.00,
         "size": "100 ml",
         "image": "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?crop=entropy&cs=srgb&fm=jpg&w=1100&q=90",
-        "tag": "Maison Édition",
+        "tag": "Édition Privée",
         "notes": ["Bulgarische Rose", "Indisches Oud", "Madagaskar Vanille"],
         "description": "Eine Hommage an die britische Krone. Bulgarische Rose im Morgentau, eingebettet in patinierte Oud-Hölzer und Madagaskar-Vanille. Eine Komposition von majestätischer Tiefe — handabgefüllt in limitierter Edition.",
         "rating": 4.9,
@@ -334,7 +334,7 @@ REVIEWS_SEED = [
         "city": "Hamburg",
         "rating": 5,
         "title": "Wahre Haute Parfumerie",
-        "text": "Naxos Reserve ist meine olfaktorische Signatur geworden. Beauty Am Schloss ist mein einziger Anlaufpunkt für seltene Maisons — hier wird Parfum noch als Kunst zelebriert.",
+        "text": "Naxos Reserve ist meine olfaktorische Signatur geworden. Beauty Am Schloss ist mein einziger Anlaufpunkt für seltene Häuser — hier wird Parfum noch als Kunst zelebriert.",
         "product": "Naxos Reserve",
     },
     {

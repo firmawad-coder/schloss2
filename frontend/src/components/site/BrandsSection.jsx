@@ -2,13 +2,13 @@ import { ArrowUpRight } from "lucide-react";
 
 export default function BrandsSection({ brands }) {
   return (
-    <section id="maisons" className="py-28 lg:py-44 bg-[#f5f0e8] relative" data-testid="bas-brands">
+    <section id="haeuser" className="py-28 lg:py-44 bg-[#f5f0e8] relative" data-testid="bas-brands">
       <div className="max-w-[1520px] mx-auto px-6 lg:px-14">
         <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between mb-20 gap-8">
           <div>
             <div className="flex items-center gap-4 mb-7">
               <span className="h-px w-12 bg-[#a8814a]" />
-              <span className="font-italiana text-[#a8814a] tracking-[0.4em] text-xs">LES MAISONS</span>
+              <span className="font-italiana text-[#a8814a] tracking-[0.4em] text-xs">DIE HÄUSER</span>
             </div>
             <h2 className="font-display text-[clamp(2.5rem,6vw,5.5rem)] text-[#1c1714] leading-[0.98] font-light max-w-[820px]">
               Vier Häuser.<br />
@@ -16,9 +16,9 @@ export default function BrandsSection({ brands }) {
             </h2>
           </div>
           <p className="text-[#4a3f37] max-w-md font-light leading-[1.85] text-[15px]">
-            Wir vertreten ausschließlich Maisons, die olfaktorische Kunst über
-            Mode stellen. Jede Komposition wird in kleinen Chargen abgefüllt,
-            jeder Flakon durchquert Europa von Hand.
+            Beauty Am Schloss vertritt ausschließlich Häuser, die olfaktorische
+            Kunst über Mode stellen. Jede Komposition wird in kleinen Chargen
+            abgefüllt, jeder Flakon durchquert Europa von Hand.
           </p>
         </div>
 
@@ -26,7 +26,7 @@ export default function BrandsSection({ brands }) {
           {brands.map((brand, idx) => (
             <a
               key={brand.id}
-              href={`#maison-${brand.slug}`}
+              href={`#haus-${brand.slug}`}
               className="group relative block aspect-[3/4.2] overflow-hidden bg-[#1c1714] bas-img-hover"
               data-testid={`bas-brand-${idx}`}
             >

@@ -39,8 +39,8 @@ export default function Home() {
           id="fragrances"
           eyebrowNumber="N°I"
           eyebrow="HAUTE PARFUMERIE"
-          title="Die Auswahl der"
-          italicWord="Maison."
+          title="Die Auswahl des"
+          italicWord="Hauses."
           description="Acht Parfums, sorgfältig kuratiert aus den Häusern, die olfaktorische Geschichte schreiben. Jeder Flakon eine Signatur."
           products={fragrances.slice(0, 4)}
           ctaLabel="Alle Parfums"
@@ -52,7 +52,7 @@ export default function Home() {
           eyebrow="NOUVELLES PARUTIONS"
           title="Frisch in"
           italicWord="Berlin."
-          description="Die jüngsten Editionen unserer Maisons — limitiert, persönlich freigegeben, in Kleinstchargen abgefüllt."
+          description="Die jüngsten Editionen unserer Häuser — limitiert, persönlich freigegeben, in Kleinstchargen abgefüllt."
           products={newest.slice(0, 4)}
           dark
           ctaLabel="Alle Neuheiten"

@@ -37,7 +37,7 @@ export default function Newsletter() {
           <span className="italic bas-gold-text">inneren Kreis.</span>
         </h2>
         <p className="text-[#ddd2bf]/75 max-w-xl mx-auto leading-[1.85] font-light text-[15px] mb-14">
-          Private Maison-Drops, limitierte Editionen, Einladungen zu Trunkshows
+          Private Drops, limitierte Editionen, Einladungen zu Trunkshows
           und persönliche Olfaktorische-Beratung — direkt in Ihr Postfach.
           Diskret. Selten. Persönlich.
         </p>

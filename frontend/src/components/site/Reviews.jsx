@@ -18,7 +18,7 @@ export default function Reviews() {
           </div>
           <h2 className="font-display text-[clamp(2.2rem,5vw,4.5rem)] text-[#1c1714] leading-[1.02] font-light mb-7">
             Worte unserer<br />
-            <span className="italic text-[#a8814a]">Maison-Kundinnen.</span>
+            <span className="italic text-[#a8814a]">Kundinnen.</span>
           </h2>
           <div className="flex items-center justify-center gap-3 text-[#1c1714]">
             <div className="flex gap-1">

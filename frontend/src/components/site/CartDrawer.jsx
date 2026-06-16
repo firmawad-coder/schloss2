@@ -53,7 +53,7 @@ export default function CartDrawer({ open, onOpenChange }) {
                 <ShoppingBag size={28} strokeWidth={1} className="text-[#a8814a] mb-6" />
                 <h3 className="font-display text-2xl text-[#1c1714] font-light mb-3">Ihr Cabinet ist leer</h3>
                 <p className="text-[13px] text-[#6a5f55] font-light max-w-[260px] leading-relaxed">
-                  Beginnen Sie Ihre olfaktorische Reise — vier Maisons warten auf Sie.
+                  Beginnen Sie Ihre olfaktorische Reise — vier Häuser warten auf Sie.
                 </p>
                 <button
                   onClick={() => onOpenChange(false)}

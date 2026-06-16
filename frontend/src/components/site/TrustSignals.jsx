@@ -1,7 +1,7 @@
 import { Crown, Sparkles, ShieldCheck, Feather } from "lucide-react";
 
 const SIGNALS = [
-  { icon: Crown, title: "Authorised Maison Retailer", text: "Direkt von den Häusern. Niemals graue Ware." },
+  { icon: Crown, title: "Authorised Retailer", text: "Direkt von den Häusern. Niemals graue Ware." },
   { icon: Feather, title: "Handcrafted in Europe", text: "Jeder Flakon kuratiert in Berlin." },
   { icon: Sparkles, title: "Drei Proben inklusive", text: "Persönlich für Sie ausgewählt." },
   { icon: ShieldCheck, title: "Concierge Beratung", text: "Mo – Sa, von echten Parfumeurs-Kennerinnen." },

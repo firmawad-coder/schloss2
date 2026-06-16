@@ -1,8 +1,8 @@
 import { Instagram, Facebook, Mail, MapPin } from "lucide-react";
 
 const COLS = [
-  { title: "Maison", links: ["Über uns", "Philosophie", "Concierge-Service", "Pressestimmen", "Karriere"] },
-  { title: "Parfum", links: ["Boadicea the Victorious", "Fragrance Du Bois", "Roja Parfums", "Xerjoff", "Alle Maisons"] },
+  { title: "Beauty Am Schloss", links: ["Über uns", "Philosophie", "Concierge-Service", "Pressestimmen", "Karriere"] },
+  { title: "Parfum", links: ["Boadicea the Victorious", "Fragrance Du Bois", "Roja Parfums", "Xerjoff", "Alle Häuser"] },
   { title: "Service", links: ["Versand & Lieferung", "Rückgaben", "Geschenkverpackung", "FAQ", "Kontakt"] },
 ];
 
@@ -14,14 +14,14 @@ export default function Footer() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 mb-20">
           <div className="lg:col-span-4">
             <div className="flex flex-col mb-7">
-              <span className="font-italiana text-[10px] tracking-[0.5em] text-[#a8814a] mb-1">— MAISON —</span>
+              <span className="font-italiana text-[10px] tracking-[0.5em] text-[#a8814a] mb-1">— PARFUMERIE —</span>
               <span className="font-display text-[28px] tracking-[0.12em] leading-none">
                 BEAUTY <span className="italic text-[#a8814a]">am</span> SCHLOSS
               </span>
             </div>
             <p className="text-[#ddd2bf]/65 text-[14px] leading-[1.85] max-w-sm font-light">
               Privatkundenhaus für Haute Parfumerie und Medical Skincare.
-              Authorised Maison Retailer. Handverlesen in Berlin, versandt in ganz Europa.
+              Authorised Retailer. Handverlesen in Berlin, versandt in ganz Europa.
             </p>
             <div className="flex items-start gap-3 mt-8 text-[#ddd2bf]/70">
               <MapPin size={14} strokeWidth={1.2} className="mt-1 text-[#a8814a]" />
@@ -68,7 +68,7 @@ export default function Footer() {
 
         <div className="border-t border-[#a8814a]/20 pt-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-5">
           <p className="text-[11px] tracking-[0.2em] text-[#ddd2bf]/55 font-light">
-            © {new Date().getFullYear()} BEAUTY AM SCHLOSS Maison · Handcrafted in Europe · Alle Rechte vorbehalten.
+            © {new Date().getFullYear()} BEAUTY AM SCHLOSS · Handcrafted in Europe · Alle Rechte vorbehalten.
           </p>
           <ul className="flex flex-wrap gap-7 text-[11px] tracking-[0.2em] uppercase text-[#ddd2bf]/55 font-light">
             {["Impressum", "Datenschutz", "AGB", "Cookies"].map((l) => (

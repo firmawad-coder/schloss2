@@ -4,7 +4,7 @@ import { useCart } from "@/lib/cart";
 
 const PRIMARY_LINKS = [
   { label: "Parfum", id: "fragrances", primary: true },
-  { label: "Maisons", id: "maisons" },
+  { label: "Häuser", id: "haeuser" },
   { label: "Neuheiten", id: "newest" },
 ];
 const SECONDARY_LINKS = [
@@ -14,7 +14,7 @@ const SECONDARY_LINKS = [
 ];
 
 const TOP_BAR = [
-  "Handcrafted in Europe — Authorised Maison Retailer",
+  "Handcrafted in Europe — Authorised Retailer",
   "Versandkostenfrei ab €150 · DE & EU",
   "Drei kuratierte Proben zu jeder Bestellung",
   "Concierge: +49 30 1234 5678 · Mo – Sa",
@@ -82,7 +82,7 @@ export default function Navigation({ onCartOpen }) {
 
           {/* Logo */}
           <a href="/" className="justify-self-center flex flex-col items-center select-none" data-testid="bas-logo">
-            <span className="font-italiana text-[10px] tracking-[0.5em] text-[#a8814a] mb-1">— MAISON —</span>
+            <span className="font-italiana text-[10px] tracking-[0.5em] text-[#a8814a] mb-1">— PARFUMERIE —</span>
             <span className="font-display text-[24px] sm:text-[26px] lg:text-[28px] tracking-[0.12em] text-[#1c1714] leading-none">
               BEAUTY <span className="font-display italic text-[#a8814a]">am</span> SCHLOSS
             </span>
