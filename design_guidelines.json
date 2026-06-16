@@ -1,0 +1,98 @@
+{
+  "theme": "light",
+  "archetype": "5 (Luxury) - Light Variant",
+  "brand_name": "LUXÉLLE",
+  "color_palette": {
+    "primary": "#1a1a1a",
+    "background": "#f9f7f4",
+    "surface": "#ffffff",
+    "text_primary": "#1a1a1a",
+    "text_secondary": "#5a5a5a",
+    "accent": "#d4af37",
+    "border": "#e6dfd7"
+  },
+  "typography": {
+    "heading_font": "Playfair Display",
+    "body_font": "Montserrat",
+    "h1": "text-5xl sm:text-6xl tracking-tight font-light",
+    "h2": "text-3xl sm:text-4xl tracking-tight font-light",
+    "h3": "text-xl sm:text-2xl font-light",
+    "body": "text-base leading-relaxed tracking-wide",
+    "overline": "uppercase text-xs tracking-[0.2em] text-[#5a5a5a]"
+  },
+  "layout_spacing": {
+    "container": "max-w-7xl mx-auto px-6 lg:px-12",
+    "section_padding": "py-24 sm:py-32",
+    "grid_gap": "gap-8 sm:gap-12"
+  },
+  "components": {
+    "navigation": {
+      "style": "sticky top-0 z-50 backdrop-blur-xl bg-[#f9f7f4]/80 border-b border-[#e6dfd7]/50",
+      "interaction": "Brand dropdown menu using Shadcn NavigationMenu or DropdownMenu. Smooth fade-in."
+    },
+    "hero": {
+      "style": "Cinematic, min-h-[80vh] flex items-center relative",
+      "text": "Schönheit, die man spürt."
+    },
+    "buttons": {
+      "primary": "bg-[#1a1a1a] text-white hover:bg-[#d4af37] transition-colors duration-300 px-8 py-3 rounded-none uppercase text-xs tracking-[0.2em]",
+      "secondary": "bg-transparent border border-[#1a1a1a] text-[#1a1a1a] hover:bg-[#1a1a1a] hover:text-white transition-colors duration-300 px-8 py-3 rounded-none uppercase text-xs tracking-[0.2em]"
+    },
+    "product_card": {
+      "style": "Minimalist. Image container with aspect-[4/5] bg-white overflow-hidden group. Text below image, left aligned.",
+      "hover": "Image scales up to 1.05x smoothly. Button fades in at bottom of image."
+    },
+    "brand_card": {
+      "style": "Aspect-square or 3/4 relative overflow-hidden group cursor-pointer",
+      "overlay": "bg-black/20 group-hover:bg-black/40 transition-colors duration-500",
+      "text": "Absolute bottom-0 left-0 p-8 text-white z-10"
+    }
+  },
+  "images": {
+    "hero": "https://images.unsplash.com/photo-1622618991746-fe6004db3a47?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzB8MHwxfHNlYXJjaHw0fHxuaWNoZSUyMGx1eHVyeSUyMHBlcmZ1bWUlMjBib3R0bGV8ZW58MHx8fHwxNzgxNTc1MTE0fDA&ixlib=rb-4.1.0&q=85",
+    "brands": [
+      {
+        "name": "Doctor Babor",
+        "url": "https://images.unsplash.com/photo-1608979048467-6194dabc6a3d?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzN8MHwxfHNlYXJjaHwxfHxtaW5pbWFsaXN0JTIwYmVhdXR5JTIwcHJvZHVjdHxlbnwwfHx8fDE3ODE1NzUxNzl8MA&ixlib=rb-4.1.0&q=85"
+      },
+      {
+        "name": "Mesoestetic",
+        "url": "https://images.unsplash.com/photo-1629198688000-71f23e745b6e?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzN8MHwxfHNlYXJjaHwyfHxtaW5pbWFsaXN0JTIwYmVhdXR5JTIwcHJvZHVjdHxlbnwwfHx8fDE3ODE1NzUxNzl8MA&ixlib=rb-4.1.0&q=85"
+      },
+      {
+        "name": "Boadicea the Victorious",
+        "url": "https://images.unsplash.com/photo-1594125311687-3b1b3eafa9f4?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzB8MHwxfHNlYXJjaHwxfHxuaWNoZSUyMGx1eHVyeSUyMHBlcmZ1bWUlMjBib3R0bGV8ZW58MHx8fHwxNzgxNTc1MTE0fDA&ixlib=rb-4.1.0&q=85"
+      },
+      {
+        "name": "Fragrance Du Bois",
+        "url": "https://images.unsplash.com/photo-1615160460366-2c9a41771b51?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzB8MHwxfHNlYXJjaHwyfHxuaWNoZSUyMGx1eHVyeSUyMHBlcmZ1bWUlMjBib3R0bGV8ZW58MHx8fHwxNzgxNTc1MTE0fDA&ixlib=rb-4.1.0&q=85"
+      }
+    ],
+    "products": [
+      "https://images.unsplash.com/photo-1631438420064-8f1b2b52b2e6?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1Mjh8MHwxfHNlYXJjaHwxfHxsdXh1cnklMjBza2luY2FyZSUyMGNvc21ldGljJTIwY3JlYW0lMjBqYXJ8ZW58MHx8fHwxNzgxNTc1MTE0fDA&ixlib=rb-4.1.0&q=85",
+      "https://images.unsplash.com/photo-1763503836825-97f5450d155a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1Mjh8MHwxfHNlYXJjaHw0fHxsdXh1cnklMjBza2luY2FyZSUyMGNvc21ldGljJTIwY3JlYW0lMjBqYXJ8ZW58MHx8fHwxNzgxNTc1MTE0fDA&ixlib=rb-4.1.0&q=85",
+      "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzN8MHwxfHNlYXJjaHwzfHxtaW5pbWFsaXN0JTIwYmVhdXR5JTIwcHJvZHVjdHxlbnwwfHx8fDE3ODE1NzUxNzl8MA&ixlib=rb-4.1.0&q=85",
+      "https://images.unsplash.com/photo-1643123158391-8543727c85f5?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1Mjh8MHwxfHNlYXJjaHwyfHxsdXh1cnklMjBza2luY2FyZSUyMGNvc21ldGljJTIwY3JlYW0lMjBqYXJ8ZW58MHx8fHwxNzgxNTc1MTE0fDA&ixlib=rb-4.1.0&q=85"
+    ],
+    "philosophy_section": "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NDh8MHwxfHNlYXJjaHwyfHxza2luY2FyZSUyMGFlc3RoZXRpY3xlbnwwfHx8fDE3ODE1NzUxNzl8MA&ixlib=rb-4.1.0&q=85"
+  },
+  "icons": "lucide-react",
+  "motion": {
+    "page_load": "Framer motion for staggered fade-in and slight upward translation (y: 20 to 0).",
+    "hover": "Image scale 1.05 with smooth transition duration-500 ease-out. No bouncy effects."
+  },
+  "instructions_to_main_agent": [
+    "Build the website using pure HTML + Tailwind CSS for layout.",
+    "Use lucide-react for all icons (thin, elegant stroke width if possible).",
+    "Implement a sticky navigation with a glassmorphism effect (backdrop-blur-xl bg-[#f9f7f4]/80) when scrolling. Use Radix/Shadcn UI for the brand dropdown menu.",
+    "The hero section should be cinematic, occupying 80vh to 100vh with a large image and elegant typography.",
+    "Add a trust signals row below the hero (e.g., Free Shipping, Expert Advice, Authenticity, Samples) using small, subtle icons and uppercase tiny text.",
+    "The 'Nach Maison entdecken' section should be a grid of 4 large brand cards with image backgrounds and dark overlays.",
+    "The product grid (Newest & Bestsellers) should feature high-end minimalist product cards (no visible card border/background, image focus).",
+    "Include a 'Medical Beauty Philosophy' editorial section with a 50/50 image and text split layout.",
+    "The footer should be a clean luxury footer with lots of whitespace.",
+    "Ensure generous spacing (py-24 or py-32) between sections.",
+    "All interactive elements MUST include data-testid attributes.",
+    "Import Playfair Display and Montserrat fonts from Google Fonts in the main HTML/CSS."
+  ]
+}
