@@ -9,23 +9,23 @@ export default function ProductSection({ id, eyebrow, eyebrowNumber, title, ital
   const ctaColor = dark ? "text-[#f5f0e8] hover:text-[#d4b06a]" : "text-[#1c1714] hover:text-[#a8814a]";
 
   return (
-    <section id={id} className={`py-28 lg:py-44 relative ${bg}`} data-testid={`bas-section-${id}`}>
-      <div className="max-w-[1520px] mx-auto px-6 lg:px-14">
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-20 gap-8">
+    <section id={id} className={`py-32 lg:py-52 relative ${bg}`} data-testid={`bas-section-${id}`}>
+      <div className="max-w-[1520px] mx-auto px-6 lg:px-16">
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-24 gap-10">
           <div>
-            <div className="flex items-center gap-4 mb-7">
-              <span className={`h-px w-12 ${dark ? "bg-[#d4b06a]" : "bg-[#a8814a]"}`} />
-              <span className={`font-italiana ${goldText} tracking-[0.4em] text-xs`}>
+            <div className="flex items-center gap-5 mb-9">
+              <span className={`h-px w-16 ${dark ? "bg-[#d4b06a]" : "bg-[#a8814a]"}`} />
+              <span className={`font-italiana ${goldText} tracking-[0.5em] text-xs`}>
                 {eyebrowNumber && `${eyebrowNumber} · `}{eyebrow}
               </span>
             </div>
-            <h2 className={`font-display text-[clamp(2.5rem,6vw,5.5rem)] ${titleColor} leading-[0.98] font-light`}>
+            <h2 className={`font-display text-[clamp(2.75rem,6.5vw,6rem)] ${titleColor} leading-[0.95] font-light tracking-[-0.012em]`}>
               {title} <span className={`italic ${goldText}`}>{italicWord}</span>
             </h2>
-            {description && <p className={`${descColor} mt-7 max-w-md font-light text-[15px] leading-[1.85]`}>{description}</p>}
+            {description && <p className={`${descColor} mt-9 max-w-md font-light text-[15.5px] leading-[1.95]`}>{description}</p>}
           </div>
           <button
-            className={`self-start md:self-end inline-flex items-center gap-3 uppercase text-[11px] tracking-[0.32em] ${ctaColor} transition-colors group`}
+            className={`self-start md:self-end inline-flex items-center gap-4 uppercase text-[11px] tracking-[0.4em] ${ctaColor} transition-colors group`}
             data-testid={`bas-section-${id}-cta`}
           >
             {ctaLabel}
@@ -33,7 +33,7 @@ export default function ProductSection({ id, eyebrow, eyebrowNumber, title, ital
           </button>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-5 gap-y-14 lg:gap-x-8 lg:gap-y-20">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-16 lg:gap-x-10 lg:gap-y-24">
           {products.map((p, idx) => (
             <ProductCard key={p.id} product={p} index={`${id}-${idx}`} />
           ))}

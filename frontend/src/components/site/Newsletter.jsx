@@ -13,7 +13,7 @@ export default function Newsletter() {
     setLoading(true);
     try {
       const res = await subscribeNewsletter(email);
-      toast.success(res.message || "Bienvenue.");
+      toast.success(res.message || "Willkommen.");
       if (res.status === "subscribed") setEmail("");
     } catch (err) {
       toast.error("Bitte geben Sie eine gültige E-Mail-Adresse ein.");
@@ -23,22 +23,22 @@ export default function Newsletter() {
   };
 
   return (
-    <section id="newsletter" className="bg-[#1c1714] text-[#f5f0e8] py-28 lg:py-44 relative overflow-hidden" data-testid="bas-newsletter">
+    <section id="newsletter" className="bg-[#1c1714] text-[#f5f0e8] py-32 lg:py-52 relative overflow-hidden" data-testid="bas-newsletter">
       <div className="absolute inset-0 bas-grain opacity-25" />
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-20 bg-gradient-to-b from-[#a8814a] to-transparent" />
-      <div className="relative max-w-3xl mx-auto px-6 lg:px-14 text-center">
-        <div className="flex items-center justify-center gap-4 mb-9">
-          <span className="h-px w-12 bg-[#a8814a]" />
-          <span className="font-italiana text-[#a8814a] tracking-[0.5em] text-xs">LE CERCLE PRIVÉ</span>
-          <span className="h-px w-12 bg-[#a8814a]" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-24 bg-gradient-to-b from-[#a8814a] to-transparent" />
+      <div className="relative max-w-3xl mx-auto px-6 lg:px-16 text-center">
+        <div className="flex items-center justify-center gap-5 mb-11">
+          <span className="h-px w-16 bg-[#a8814a]" />
+          <span className="font-italiana text-[#a8814a] tracking-[0.55em] text-xs">LE CERCLE PRIVÉ</span>
+          <span className="h-px w-16 bg-[#a8814a]" />
         </div>
-        <h2 className="font-display text-[clamp(2.5rem,5.5vw,5rem)] leading-[1] mb-9 font-light">
+        <h2 className="font-display text-[clamp(2.6rem,5.75vw,5.5rem)] leading-[0.96] mb-11 font-light tracking-[-0.012em]">
           Eintreten in den<br />
           <span className="italic bas-gold-text">inneren Kreis.</span>
         </h2>
-        <p className="text-[#ddd2bf]/75 max-w-xl mx-auto leading-[1.85] font-light text-[15px] mb-14">
+        <p className="text-[#ddd2bf]/75 max-w-xl mx-auto leading-[1.95] font-light text-[15.5px] mb-16">
           Private Drops, limitierte Editionen, Einladungen zu Trunkshows
-          und persönliche Olfaktorische-Beratung — direkt in Ihr Postfach.
+          und persönliche olfaktorische Beratung — direkt in Ihr Postfach.
           Diskret. Selten. Persönlich.
         </p>
 
@@ -49,13 +49,13 @@ export default function Newsletter() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Ihre E-Mail-Adresse"
-            className="flex-1 bg-transparent border-b border-[#f5f0e8]/25 focus:border-[#a8814a] outline-none py-5 px-2 placeholder-[#f5f0e8]/40 text-[#f5f0e8] text-sm tracking-wider transition-colors duration-500"
+            className="flex-1 bg-transparent border-b border-[#f5f0e8]/25 focus:border-[#a8814a] outline-none py-6 px-2 placeholder-[#f5f0e8]/40 text-[#f5f0e8] text-sm tracking-wider transition-colors duration-500"
             data-testid="bas-newsletter-input"
           />
           <button
             type="submit"
             disabled={loading}
-            className="inline-flex items-center justify-center gap-3 bg-[#a8814a] text-[#1c1714] hover:bg-[#f5f0e8] transition-colors duration-700 px-11 py-5 uppercase text-[11px] tracking-[0.32em] disabled:opacity-60 font-medium"
+            className="inline-flex items-center justify-center gap-4 bg-[#a8814a] text-[#1c1714] hover:bg-[#f5f0e8] transition-colors duration-700 px-12 py-6 uppercase text-[11px] tracking-[0.4em] disabled:opacity-60 font-medium"
             data-testid="bas-newsletter-submit"
           >
             {loading ? "Sende..." : "Beitreten"}
@@ -63,7 +63,7 @@ export default function Newsletter() {
           </button>
         </form>
 
-        <p className="text-[10px] tracking-[0.3em] uppercase text-[#f5f0e8]/35 mt-9">
+        <p className="text-[10px] tracking-[0.36em] uppercase text-[#f5f0e8]/35 mt-11 font-italiana">
           Mit der Anmeldung akzeptieren Sie unsere Datenschutzbestimmungen.
         </p>
       </div>
