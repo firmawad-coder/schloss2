@@ -13,56 +13,57 @@ export default function Newsletter() {
     setLoading(true);
     try {
       const res = await subscribeNewsletter(email);
-      toast.success(res.message || "Willkommen bei LUXÉLLE.");
+      toast.success(res.message || "Bienvenue.");
       if (res.status === "subscribed") setEmail("");
     } catch (err) {
-      const msg = err?.response?.data?.detail?.[0]?.msg || "Bitte gültige E-Mail eingeben.";
-      toast.error(typeof msg === "string" ? msg : "Etwas ist schief gelaufen.");
+      toast.error("Bitte geben Sie eine gültige E-Mail-Adresse ein.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <section id="newsletter" className="bg-[#1a1a1a] text-[#f9f7f4] py-24 lg:py-36 relative overflow-hidden" data-testid="lx-newsletter">
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-16 bg-[#d4af37]" />
-      <div className="max-w-3xl mx-auto px-6 lg:px-12 text-center">
-        <p className="overline text-[#d4af37] mb-8">— Le Cercle LUXÉLLE</p>
-        <h2 className="font-serif-display text-4xl sm:text-5xl lg:text-6xl leading-[1.05] mb-8">
+    <section id="newsletter" className="bg-[#1c1714] text-[#f5f0e8] py-28 lg:py-44 relative overflow-hidden" data-testid="bas-newsletter">
+      <div className="absolute inset-0 bas-grain opacity-25" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-20 bg-gradient-to-b from-[#a8814a] to-transparent" />
+      <div className="relative max-w-3xl mx-auto px-6 lg:px-14 text-center">
+        <div className="flex items-center justify-center gap-4 mb-9">
+          <span className="h-px w-12 bg-[#a8814a]" />
+          <span className="font-italiana text-[#a8814a] tracking-[0.5em] text-xs">LE CERCLE PRIVÉ</span>
+          <span className="h-px w-12 bg-[#a8814a]" />
+        </div>
+        <h2 className="font-display text-[clamp(2.5rem,5.5vw,5rem)] leading-[1] mb-9 font-light">
           Eintreten in den<br />
-          <span className="italic text-[#d4af37]">inneren Kreis.</span>
+          <span className="italic bas-gold-text">inneren Kreis.</span>
         </h2>
-        <p className="text-[#f9f7f4]/65 max-w-xl mx-auto leading-relaxed font-light mb-12">
-          Exklusive Neuheiten, private Editionen und Einladungen zu Maison-Events —
-          direkt in Ihr Postfach. Diskret. Selten. Persönlich.
+        <p className="text-[#ddd2bf]/75 max-w-xl mx-auto leading-[1.85] font-light text-[15px] mb-14">
+          Private Maison-Drops, limitierte Editionen, Einladungen zu Trunkshows
+          und persönliche Olfaktorische-Beratung — direkt in Ihr Postfach.
+          Diskret. Selten. Persönlich.
         </p>
 
-        <form
-          onSubmit={handleSubmit}
-          className="flex flex-col sm:flex-row gap-3 sm:gap-0 max-w-xl mx-auto"
-          data-testid="lx-newsletter-form"
-        >
+        <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 sm:gap-0 max-w-xl mx-auto" data-testid="bas-newsletter-form">
           <input
             type="email"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Ihre E-Mail-Adresse"
-            className="flex-1 bg-transparent border-b border-[#f9f7f4]/30 focus:border-[#d4af37] outline-none py-4 px-2 placeholder-[#f9f7f4]/40 text-[#f9f7f4] text-sm tracking-wider transition-colors"
-            data-testid="lx-newsletter-input"
+            className="flex-1 bg-transparent border-b border-[#f5f0e8]/25 focus:border-[#a8814a] outline-none py-5 px-2 placeholder-[#f5f0e8]/40 text-[#f5f0e8] text-sm tracking-wider transition-colors duration-500"
+            data-testid="bas-newsletter-input"
           />
           <button
             type="submit"
             disabled={loading}
-            className="inline-flex items-center justify-center gap-3 bg-[#d4af37] text-[#1a1a1a] hover:bg-[#f9f7f4] transition-colors duration-500 px-10 py-4 uppercase text-[11px] tracking-[0.28em] disabled:opacity-60"
-            data-testid="lx-newsletter-submit"
+            className="inline-flex items-center justify-center gap-3 bg-[#a8814a] text-[#1c1714] hover:bg-[#f5f0e8] transition-colors duration-700 px-11 py-5 uppercase text-[11px] tracking-[0.32em] disabled:opacity-60 font-medium"
+            data-testid="bas-newsletter-submit"
           >
             {loading ? "Sende..." : "Beitreten"}
-            <ArrowRight size={14} strokeWidth={1.5} />
+            <ArrowRight size={13} strokeWidth={1.4} />
           </button>
         </form>
 
-        <p className="overline text-[#f9f7f4]/40 mt-8">
+        <p className="text-[10px] tracking-[0.3em] uppercase text-[#f5f0e8]/35 mt-9">
           Mit der Anmeldung akzeptieren Sie unsere Datenschutzbestimmungen.
         </p>
       </div>

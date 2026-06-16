@@ -4,46 +4,79 @@ import Hero from "@/components/site/Hero";
 import TrustSignals from "@/components/site/TrustSignals";
 import BrandsSection from "@/components/site/BrandsSection";
 import ProductSection from "@/components/site/ProductSection";
+import Reviews from "@/components/site/Reviews";
 import Philosophy from "@/components/site/Philosophy";
 import Newsletter from "@/components/site/Newsletter";
 import Footer from "@/components/site/Footer";
+import CartDrawer from "@/components/site/CartDrawer";
 import { fetchBrands, fetchProducts } from "@/lib/api";
 
 export default function Home() {
-  const [brands, setBrands] = useState([]);
-  const [newest, setNewest] = useState([]);
+  const [parfumBrands, setParfumBrands] = useState([]);
+  const [fragrances, setFragrances] = useState([]);
   const [bestsellers, setBestsellers] = useState([]);
+  const [newest, setNewest] = useState([]);
+  const [skincare, setSkincare] = useState([]);
+  const [cartOpen, setCartOpen] = useState(false);
 
   useEffect(() => {
-    fetchBrands().then(setBrands).catch(() => {});
-    fetchProducts("new").then(setNewest).catch(() => {});
-    fetchProducts("bestseller").then(setBestsellers).catch(() => {});
+    fetchBrands("fragrance").then(setParfumBrands).catch(() => {});
+    fetchProducts({ category: "fragrance" }).then(setFragrances).catch(() => {});
+    fetchProducts({ filter: "bestseller", category: "fragrance" }).then(setBestsellers).catch(() => {});
+    fetchProducts({ filter: "new", category: "fragrance" }).then(setNewest).catch(() => {});
+    fetchProducts({ category: "skincare" }).then(setSkincare).catch(() => {});
   }, []);
 
   return (
-    <div className="bg-[#f9f7f4] min-h-screen" data-testid="lx-home">
-      <Navigation />
+    <div className="bg-[#f5f0e8] min-h-screen" data-testid="bas-home">
+      <Navigation onCartOpen={() => setCartOpen(true)} />
+      <CartDrawer open={cartOpen} onOpenChange={setCartOpen} />
       <main>
         <Hero />
         <TrustSignals />
-        <BrandsSection brands={brands} />
+        <BrandsSection brands={parfumBrands} />
+        <ProductSection
+          id="fragrances"
+          eyebrowNumber="N°I"
+          eyebrow="HAUTE PARFUMERIE"
+          title="Die Auswahl der"
+          italicWord="Maison."
+          description="Acht Parfums, sorgfältig kuratiert aus den Häusern, die olfaktorische Geschichte schreiben. Jeder Flakon eine Signatur."
+          products={fragrances.slice(0, 4)}
+          ctaLabel="Alle Parfums"
+        />
+        <Reviews />
         <ProductSection
           id="newest"
-          eyebrow="Soeben eingetroffen"
-          title="Die neuesten"
-          italicWord="Stücke."
-          description="Frische Maison-Drops und limitierte Editionen, persönlich für Sie ausgewählt."
-          products={newest}
+          eyebrowNumber="N°II"
+          eyebrow="NOUVELLES PARUTIONS"
+          title="Frisch in"
+          italicWord="Berlin."
+          description="Die jüngsten Editionen unserer Maisons — limitiert, persönlich freigegeben, in Kleinstchargen abgefüllt."
+          products={newest.slice(0, 4)}
+          dark
+          ctaLabel="Alle Neuheiten"
         />
         <Philosophy />
         <ProductSection
           id="bestsellers"
-          eyebrow="Most loved"
-          title="Bestseller der"
-          italicWord="Saison."
-          description="Pflege- und Parfumerie-Klassiker, die unsere Kundinnen immer wieder wählen."
-          products={bestsellers}
+          eyebrowNumber="N°VI"
+          eyebrow="LES INCONTOURNABLES"
+          title="Die zeitlosen"
+          italicWord="Klassiker."
+          description="Parfums, die unsere Kundinnen seit Jahren wählen — Komposition gewordene Eleganz."
+          products={bestsellers.slice(0, 4)}
           ctaLabel="Alle Bestseller"
+        />
+        <ProductSection
+          id="skincare"
+          eyebrowNumber="N°VII"
+          eyebrow="MEDICAL SKINCARE"
+          title="Auch für die"
+          italicWord="Haut."
+          description="Hochleistungs-Pflege aus dermatologischen Laboren — als olfaktorische Ergänzung zu Ihrem Ritual."
+          products={skincare.slice(0, 4)}
+          ctaLabel="Alle Pflege"
         />
         <Newsletter />
       </main>

@@ -1,0 +1,36 @@
+{
+  "summary": "Rebrand to Beauty Am Schloss verified end-to-end. Backend: 11/11 pytest pass (brands fragrance=4, brands skincare=2, products fragrance=8, products skincare=4, bestseller/new fragrance filters, /api/reviews=3 well-formed entries, /api/newsletter subscribed/already_subscribed/422). Frontend: nav (logo, links, cart icon w/ count badge), hero ('Düfte, die / Geschichte tragen.'), trust signals (Handcrafted in Europe), 4 maisons (Boadicea, Fragrance Du Bois, Roja Parfums, Xerjoff), product sections, 3 reviews, philosophy, newsletter form with sonner toast 'Willkommen im Cercle Beauty Am Schloss.', footer all rendered. Cart drawer: add-to-cart via bas-product-add-inline-fragrances-{idx} updates badge to 2, drawer opens with 2 items, qty +/-, remove, checkout button all functional. Mobile nav toggle opens panel with 7 links incl. phone +49 30 1234 5678. Smooth-scroll nav links work.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "CartDrawer (Sheet)", "issues": ["Radix a11y warning: DialogContent requires DialogTitle for screen-reader users; also missing aria-describedby. Wrap a hidden DialogTitle/Description (or use VisuallyHidden) in /app/frontend/src/components/site/CartDrawer.jsx to silence the console error."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_bas_api.py",
+    "/app/test_reports/pytest/bas_results.xml"
+  ],
+  "action_items": [
+    "Optional: Add a (visually-hidden) DialogTitle + DialogDescription inside SheetContent in CartDrawer to remove Radix a11y console errors."
+  ],
+  "critical_code_review_comments": [
+    "server.py still uses deprecated @app.on_event('shutdown') - prefer FastAPI lifespan handlers.",
+    "Brand/Product/Review seed data is hardcoded in server.py (acceptable for showcase, but blocks admin CRUD).",
+    "Newsletter duplicate returns HTTP 200 with status='already_subscribed' instead of 409 Conflict - matches spec but consider 409 for stricter REST.",
+    "Cart store is in-memory (/app/frontend/src/lib/cart.js) - resets on page refresh; persistence (localStorage) recommended for production.",
+    "Radix Dialog accessibility: CartDrawer's SheetContent missing DialogTitle/Description; console errors on every cart open."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_bas_api.py (new)",
+    "removed /app/backend/tests/test_luxelle_api.py (stale, replaced)"
+  ],
+  "success_rate": {"backend": "100% (11/11)", "frontend": "100% effective (20/20 after fixing two selector false-negatives)"},
+  "test_credentials": "N/A - no auth",
+  "seed_data_creation": "Newsletter test emails (bas_*@test-bas.com, uitest_*@bas-test.com) created in MongoDB newsletter collection during tests.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All bas-* data-testids verified: bas-nav-{fragrances|maisons|newest|skincare|philosophy|newsletter|cart|mobile-toggle}, bas-product-add-inline-{section}-{idx} (preferred over hover overlay bas-product-add-{section}-{idx}), bas-cart-drawer/close/checkout/item-/qty-plus-/qty-minus-/remove-, bas-review-{idx}, bas-newsletter-form/input/submit. Hero H1 wraps with newline: 'Düfte, die\\nGeschichte tragen.' — use locator('h1').inner_text() and substring match, NOT exact text=. Sonner toast selector: [data-sonner-toast]. Cart store is in-memory only.",
+  "rca of the issue": "No app issues. The two playwright misses were selector bugs in the test (newline-split heading + wrong toast selector); fixed and re-verified — app is fully functional."
+}

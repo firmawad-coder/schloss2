@@ -5,13 +5,26 @@ import Home from "@/pages/Home";
 
 function App() {
   return (
-    <div className="App" data-testid="luxelle-app">
+    <div className="App" data-testid="bas-app">
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Home />} />
         </Routes>
       </BrowserRouter>
-      <Toaster position="bottom-center" toastOptions={{ style: { background: "#1a1a1a", color: "#f9f7f4", border: "1px solid #d4af37", borderRadius: 0 } }} />
+      <Toaster
+        position="bottom-center"
+        toastOptions={{
+          style: {
+            background: "#1c1714",
+            color: "#f5f0e8",
+            border: "1px solid #a8814a",
+            borderRadius: 0,
+            fontFamily: "Inter, sans-serif",
+            fontSize: 13,
+            letterSpacing: "0.05em",
+          },
+        }}
+      />
     </div>
   );
 }
