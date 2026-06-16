@@ -5,7 +5,7 @@ export default function Hero() {
     <section className="relative min-h-[100svh] flex items-end overflow-hidden bg-[#1c1714] text-[#f5f0e8] pt-[150px]" data-testid="bas-hero">
       <div className="absolute inset-0">
         <img
-          src="https://images.unsplash.com/photo-1615368144592-35d2b37fa49b?crop=entropy&cs=srgb&fm=jpg&w=2000&q=92"
+          src={`${process.env.REACT_APP_BACKEND_URL}/api/static/products/hero-cover.png`}
           alt="Beauty Am Schloss — Haute Parfumerie"
           className="absolute inset-0 w-full h-full object-cover opacity-95 bas-fade-in"
         />

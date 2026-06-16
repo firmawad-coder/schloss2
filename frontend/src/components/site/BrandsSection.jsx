@@ -1,4 +1,5 @@
 import { ArrowUpRight } from "lucide-react";
+import { resolveImage } from "@/lib/api";
 
 export default function BrandsSection({ brands }) {
   return (
@@ -30,7 +31,7 @@ export default function BrandsSection({ brands }) {
               className="group relative block aspect-[3/4.4] overflow-hidden bg-[#1c1714] bas-img-hover"
               data-testid={`bas-brand-${idx}`}
             >
-              <img src={brand.image} alt={brand.name} className="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:opacity-65 transition-opacity duration-1000" />
+              <img src={resolveImage(brand.image)} alt={brand.name} className="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:opacity-65 transition-opacity duration-1000" />
               <div className="absolute inset-0 bg-gradient-to-t from-[#1c1714] via-[#1c1714]/35 to-[#1c1714]/5" />
 
               <div className="absolute top-7 left-7">

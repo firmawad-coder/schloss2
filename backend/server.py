@@ -1,4 +1,5 @@
 from fastapi import FastAPI, APIRouter
+from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -76,7 +77,7 @@ BRANDS_SEED = [
         "origin": "London",
         "established": "1998",
         "category": "fragrance",
-        "image": "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?crop=entropy&cs=srgb&fm=jpg&w=1400&q=90",
+        "image": "/api/static/products/brand-boadicea.png",
         "slug": "boadicea",
     },
     {
@@ -86,7 +87,7 @@ BRANDS_SEED = [
         "origin": "Singapur",
         "established": "2014",
         "category": "fragrance",
-        "image": "https://images.unsplash.com/photo-1541643600914-78b084683601?crop=entropy&cs=srgb&fm=jpg&w=1400&q=90",
+        "image": "/api/static/products/brand-fragrance-du-bois.png",
         "slug": "fragrance-du-bois",
     },
     {
@@ -96,7 +97,7 @@ BRANDS_SEED = [
         "origin": "London",
         "established": "2011",
         "category": "fragrance",
-        "image": "https://images.unsplash.com/photo-1588405748880-12d1d2a59f75?crop=entropy&cs=srgb&fm=jpg&w=1400&q=90",
+        "image": "/api/static/products/brand-roja-parfums.png",
         "slug": "roja-parfums",
     },
     {
@@ -106,7 +107,7 @@ BRANDS_SEED = [
         "origin": "Turin",
         "established": "2003",
         "category": "fragrance",
-        "image": "https://images.unsplash.com/photo-1523293182086-7651a899d37f?crop=entropy&cs=srgb&fm=jpg&w=1400&q=90",
+        "image": "/api/static/products/brand-xerjoff.png",
         "slug": "xerjoff",
     },
 ]
@@ -119,7 +120,7 @@ SECONDARY_BRANDS = [
         "origin": "Aachen",
         "established": "1956",
         "category": "skincare",
-        "image": "https://images.unsplash.com/photo-1631438420064-8f1b2b52b2e6?crop=entropy&cs=srgb&fm=jpg&w=1200&q=90",
+        "image": "/api/static/products/babor-elixir-24.png",
         "slug": "doctor-babor",
     },
     {
@@ -129,7 +130,7 @@ SECONDARY_BRANDS = [
         "origin": "Barcelona",
         "established": "1985",
         "category": "skincare",
-        "image": "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?crop=entropy&cs=srgb&fm=jpg&w=1200&q=90",
+        "image": "/api/static/products/mesoestetic-collagen.png",
         "slug": "mesoestetic",
     },
 ]
@@ -144,7 +145,7 @@ PRODUCTS_SEED = [
         "category": "fragrance",
         "price": 420.00,
         "size": "100 ml",
-        "image": "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?crop=entropy&cs=srgb&fm=jpg&w=1100&q=90",
+        "image": "/api/static/products/regents-crown.png",
         "tag": "Édition Privée",
         "notes": ["Bulgarische Rose", "Indisches Oud", "Madagaskar Vanille"],
         "description": "Eine Hommage an die britische Krone. Bulgarische Rose im Morgentau, eingebettet in patinierte Oud-Hölzer und Madagaskar-Vanille. Eine Komposition von majestätischer Tiefe — handabgefüllt in limitierter Edition.",
@@ -159,7 +160,7 @@ PRODUCTS_SEED = [
         "category": "fragrance",
         "price": 450.00,
         "size": "100 ml",
-        "image": "https://images.unsplash.com/photo-1541643600914-78b084683601?crop=entropy&cs=srgb&fm=jpg&w=1100&q=90",
+        "image": "/api/static/products/oud-noir-imperial.png",
         "tag": "Limitiert · 200 Flakons",
         "notes": ["Wild-Oud Assam", "Schwarzer Pfeffer", "Räucherweihrauch"],
         "description": "Dreißig Jahre gereiftes Wild-Oud aus den eigenen Plantagen — destilliert in Mondlichtnächten. Schwarzer Pfeffer und Weihrauch umhüllen das Herz in samtiger Dunkelheit. Ein Parfum, das nicht spricht, sondern flüstert.",
@@ -175,7 +176,7 @@ PRODUCTS_SEED = [
         "category": "fragrance",
         "price": 450.00,
         "size": "100 ml",
-        "image": "https://images.unsplash.com/photo-1610461888750-10bfc601b874?crop=entropy&cs=srgb&fm=jpg&w=1100&q=90",
+        "image": "/api/static/products/diaghilev-elixir.png",
         "tag": "Chef d'Œuvre",
         "notes": ["Türkische Rose", "Iris Pallida", "Sandalholz Mysore"],
         "description": "Roja Dove's Meisterwerk — eine Chypre-Komposition von atemberaubender Komplexität. Türkische Rose küsst Iris Pallida, getragen von gereiftem Mysore-Sandelholz. Inspiriert von den Ballets Russes.",
@@ -190,7 +191,7 @@ PRODUCTS_SEED = [
         "category": "fragrance",
         "price": 290.00,
         "size": "100 ml",
-        "image": "https://images.unsplash.com/photo-1523293182086-7651a899d37f?crop=entropy&cs=srgb&fm=jpg&w=1100&q=90",
+        "image": "/api/static/products/naxos-reserve.png",
         "tag": "Bestseller",
         "notes": ["Sizilianischer Tabak", "Honigblüte", "Kaschmir-Lavendel"],
         "description": "Mediterrane Sommernacht in einem Flakon. Sizilianischer Tabak und goldener Honig, gewärmt durch Lavendel aus Kaschmir. Sinnlich, sonnenverwöhnt, unwiderstehlich.",
@@ -205,7 +206,7 @@ PRODUCTS_SEED = [
         "category": "fragrance",
         "price": 380.00,
         "size": "100 ml",
-        "image": "https://images.unsplash.com/photo-1594125311687-3b1b3eafa9f4?crop=entropy&cs=srgb&fm=jpg&w=1100&q=90",
+        "image": "/api/static/products/aurum-chypre.png",
         "tag": "Neu",
         "notes": ["Bergamotte Calabrese", "Patchouli", "Vetiver Haiti"],
         "description": "Eine moderne Chypre, gefasst in flüssiges Gold. Kalabrische Bergamotte zerbricht auf erdigem Patchouli, getragen von haitianischem Vetiver. Ein olfaktorisches Schmuckstück.",
@@ -220,7 +221,7 @@ PRODUCTS_SEED = [
         "category": "fragrance",
         "price": 410.00,
         "size": "100 ml",
-        "image": "https://images.unsplash.com/photo-1615160460366-2c9a41771b51?crop=entropy&cs=srgb&fm=jpg&w=1100&q=90",
+        "image": "/api/static/products/santal-royal.png",
         "tag": "Bestseller",
         "notes": ["Mysore-Sandelholz", "Kaschmir", "Cremiges Amber"],
         "description": "Reines Mysore-Sandelholz, gereift wie ein großer Cognac. Umhüllt von Kaschmir-Wärme und cremigem Amber. Ein Holz-Gourmand von meditativer Eleganz.",
@@ -235,7 +236,7 @@ PRODUCTS_SEED = [
         "category": "fragrance",
         "price": 440.00,
         "size": "100 ml",
-        "image": "https://images.unsplash.com/photo-1547887537-6158d64c35b3?crop=entropy&cs=srgb&fm=jpg&w=1100&q=90",
+        "image": "/api/static/products/reine-de-saba.png",
         "tag": "Édition Privée",
         "notes": ["Weihrauch Oman", "Jasmin Sambac", "Tonkabohne"],
         "description": "Die Königin von Saba in olfaktorischer Form. Heiliger Weihrauch aus Oman trifft auf Jasmin Sambac und cremige Tonkabohne. Sakral und sinnlich zugleich.",
@@ -250,7 +251,7 @@ PRODUCTS_SEED = [
         "category": "fragrance",
         "price": 235.00,
         "size": "100 ml",
-        "image": "https://images.unsplash.com/photo-1588405748880-12d1d2a59f75?crop=entropy&cs=srgb&fm=jpg&w=1100&q=90",
+        "image": "/api/static/products/erba-pura.png",
         "tag": "Icon",
         "notes": ["Sizilianische Zitrone", "Weiße Früchte", "Ambergris"],
         "description": "Der zeitlose Klassiker aus Turin. Sizilianische Zitrone trifft auf weiße Früchte und einen Hauch Ambergris. Frisch wie ein mediterraner Morgen, kostbar wie eine Perle.",
@@ -267,7 +268,7 @@ PRODUCTS_SEED = [
         "category": "skincare",
         "price": 295.00,
         "size": "30 ml",
-        "image": "https://images.unsplash.com/photo-1631438420064-8f1b2b52b2e6?crop=entropy&cs=srgb&fm=jpg&w=1100&q=90",
+        "image": "/api/static/products/babor-elixir-24.png",
         "tag": "Hero Product",
         "description": "Hochkonzentriertes 24-Stunden-Elixier mit zellaktiven Wirkstoffen. Klinisch erprobt, dermatologisch kuratiert.",
         "rating": 4.9,
@@ -281,7 +282,7 @@ PRODUCTS_SEED = [
         "category": "skincare",
         "price": 215.00,
         "size": "50 ml",
-        "image": "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?crop=entropy&cs=srgb&fm=jpg&w=1100&q=90",
+        "image": "/api/static/products/mesoestetic-collagen.png",
         "tag": "Cosmeceutical",
         "description": "Hochleistungs-Collagen-Lifting aus dem spanischen Labor. Eine sichtbare Architektur der Haut.",
         "rating": 4.8,
@@ -295,7 +296,7 @@ PRODUCTS_SEED = [
         "category": "skincare",
         "price": 320.00,
         "size": "50 ml",
-        "image": "https://images.unsplash.com/photo-1643123158391-8543727c85f5?crop=entropy&cs=srgb&fm=jpg&w=1100&q=90",
+        "image": "/api/static/products/babor-reversive-pro.png",
         "tag": "Bestseller",
         "description": "Hochwirksame Anti-Aging-Pflege mit patentiertem Reversive-Komplex. Für eine sichtbar verjüngte Haut.",
         "rating": 4.9,
@@ -309,7 +310,7 @@ PRODUCTS_SEED = [
         "category": "skincare",
         "price": 165.00,
         "size": "30 ml",
-        "image": "https://images.unsplash.com/photo-1763503836825-97f5450d155a?crop=entropy&cs=srgb&fm=jpg&w=1100&q=90",
+        "image": "/api/static/products/mesoestetic-energy-c.png",
         "tag": "Cult Favorite",
         "description": "Reinste Vitamin-C-Konzentration mit Sofort-Glow-Effekt. Antioxidativer Schutz auf Klinikniveau.",
         "rating": 4.8,
@@ -390,6 +391,11 @@ async def subscribe_newsletter(payload: NewsletterSubscribe):
 
 
 app.include_router(api_router)
+
+# Mount static product images under /api so K8s ingress routes to backend
+STATIC_DIR = Path(__file__).parent / "static"
+STATIC_DIR.mkdir(exist_ok=True)
+app.mount("/api/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 app.add_middleware(
     CORSMiddleware,

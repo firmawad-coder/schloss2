@@ -5,6 +5,13 @@ export const API = `${BACKEND_URL}/api`;
 
 export const api = axios.create({ baseURL: API });
 
+// Resolve a possibly-relative image path against the backend URL
+export const resolveImage = (path) => {
+  if (!path) return "";
+  if (path.startsWith("http://") || path.startsWith("https://")) return path;
+  return `${BACKEND_URL}${path}`;
+};
+
 export const fetchBrands = (category) =>
   api.get("/brands", { params: category ? { category } : {} }).then((r) => r.data);
 export const fetchProducts = (params = {}) =>

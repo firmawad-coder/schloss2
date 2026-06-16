@@ -1,5 +1,6 @@
 import { Plus, Star } from "lucide-react";
 import { cartStore, formatEUR } from "@/lib/cart";
+import { resolveImage } from "@/lib/api";
 import { toast } from "sonner";
 
 export default function ProductCard({ product, index }) {
@@ -19,7 +20,7 @@ export default function ProductCard({ product, index }) {
               {product.tag}
             </span>
           )}
-          <img src={product.image} alt={product.name} className="w-full h-full object-cover" loading="lazy" />
+          <img src={resolveImage(product.image)} alt={product.name} className="w-full h-full object-cover" loading="lazy" />
 
           <button
             onClick={handleAdd}

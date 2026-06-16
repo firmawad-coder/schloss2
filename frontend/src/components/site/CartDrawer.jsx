@@ -1,5 +1,6 @@
 import { Sheet, SheetContent, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { useCart, formatEUR } from "@/lib/cart";
+import { resolveImage } from "@/lib/api";
 import { X, Plus, Minus, ShoppingBag, ArrowRight, Gift } from "lucide-react";
 
 export default function CartDrawer({ open, onOpenChange }) {
@@ -67,7 +68,7 @@ export default function CartDrawer({ open, onOpenChange }) {
                 {items.map((item) => (
                   <li key={item.id} className="py-6 flex gap-5" data-testid={`bas-cart-item-${item.id}`}>
                     <div className="w-20 h-24 bg-[#ede5d5] overflow-hidden shrink-0">
-                      <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                      <img src={resolveImage(item.image)} alt={item.name} className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="overline text-[#a8814a] text-[9px] mb-1">{item.brand}</div>

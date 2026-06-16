@@ -12,7 +12,7 @@ export default function Philosophy() {
       <div className="relative max-w-[1520px] mx-auto px-6 lg:px-16 grid grid-cols-1 lg:grid-cols-12 gap-14 lg:gap-28 items-center">
         <div className="lg:col-span-6 relative">
           <div className="aspect-[4/5] overflow-hidden bg-[#1c1714] bas-img-hover">
-            <img src="https://images.unsplash.com/photo-1547887537-6158d64c35b3?crop=entropy&cs=srgb&fm=jpg&w=1400&q=92" alt="Beauty Am Schloss Atelier" className="w-full h-full object-cover" />
+            <img src={`${process.env.REACT_APP_BACKEND_URL}/api/static/products/philosophy-atelier.png`} alt="Beauty Am Schloss Atelier" className="w-full h-full object-cover" />
           </div>
           <div className="absolute -bottom-12 lg:-bottom-16 -right-4 lg:-right-16 bg-[#1c1714] text-[#f5f0e8] p-10 lg:p-12 max-w-[340px] shadow-[0_50px_120px_-40px_rgba(28,23,20,0.7)]">
             <div className="font-display text-7xl text-[#a8814a] leading-none mb-5">"</div>
