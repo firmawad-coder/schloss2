@@ -19,8 +19,12 @@ import httpx
 
 logger = logging.getLogger(__name__)
 
-MOLLIE_API_KEY = os.environ.get("MOLLIE_API_KEY", "").strip()
 MOLLIE_API_BASE = "https://api.mollie.com/v2"
+
+
+def api_key() -> str:
+    """Read the key at call time so it works regardless of import/.env order."""
+    return os.environ.get("MOLLIE_API_KEY", "").strip()
 
 # Map Mollie payment statuses to our internal order statuses.
 STATUS_MAP = {
@@ -35,7 +39,7 @@ STATUS_MAP = {
 
 
 def is_configured() -> bool:
-    return bool(MOLLIE_API_KEY)
+    return bool(api_key())
 
 
 def map_status(mollie_status: str) -> str:
@@ -45,7 +49,7 @@ def map_status(mollie_status: str) -> str:
 
 def _headers() -> dict:
     return {
-        "Authorization": f"Bearer {MOLLIE_API_KEY}",
+        "Authorization": f"Bearer {api_key()}",
         "Content-Type": "application/json",
     }
 
