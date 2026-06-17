@@ -624,6 +624,21 @@ async def get_order(order_id: str, user: dict = Depends(get_current_user)):
     doc = await db.orders.find_one({"id": order_id, "user_id": user["id"]}, {"_id": 0})
     if not doc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Bestellung nicht gefunden.")
+    # Reconcile with Mollie when still awaiting payment, so the return/success
+    # page is correct even if the webhook is delayed or was missed.
+    if doc.get("payment_id") and doc.get("status") in ("pending", "open") and mollie.is_configured():
+        try:
+            payment = await mollie.get_payment(doc["payment_id"])
+            mollie_status = payment.get("status", "")
+            new_status = mollie.map_status(mollie_status)
+            if new_status != doc.get("status") or mollie_status != doc.get("payment_status"):
+                update = {"payment_status": mollie_status, "status": new_status}
+                if mollie_status == "paid" and not doc.get("paid_at"):
+                    update["paid_at"] = datetime.now(timezone.utc).isoformat()
+                await db.orders.update_one({"id": order_id}, {"$set": update})
+                doc.update(update)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("Could not reconcile order %s with Mollie: %s", order_id, exc)
     return Order(**doc)
 
 
