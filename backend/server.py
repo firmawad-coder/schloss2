@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, Depends, HTTPException, status
+from fastapi import FastAPI, APIRouter, Depends, HTTPException, status, Form
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
@@ -13,6 +13,7 @@ import uuid
 from datetime import datetime, timezone
 
 from auth import hash_password, verify_password, create_access_token, decode_token
+import mollie
 
 
 ROOT_DIR = Path(__file__).parent
@@ -21,6 +22,10 @@ load_dotenv(ROOT_DIR / '.env')
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
+
+# Public base URLs used to build Mollie redirect/webhook URLs.
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000').rstrip('/')
+BACKEND_PUBLIC_URL = os.environ.get('BACKEND_PUBLIC_URL', '').rstrip('/')
 
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
@@ -148,6 +153,11 @@ class Order(BaseModel):
     total: float
     status: str
     created_at: str
+    payment_id: Optional[str] = None
+    payment_status: Optional[str] = None
+    paid_at: Optional[str] = None
+    # Returned on creation so the client can redirect to Mollie; not persisted.
+    checkout_url: Optional[str] = None
 
 
 # ---------- Seed: Parfum-Häuser (Primary) + Pflege (Secondary) ----------
@@ -558,20 +568,49 @@ async def create_order(payload: OrderCreate, user: dict = Depends(get_current_us
     total = round(subtotal + shipping_cost, 2)
     now = datetime.now(timezone.utc)
     seq = await db.orders.count_documents({}) + 1
+    order_id = str(uuid.uuid4())
+    order_number = f"BAS-{now.year}-{seq:04d}"
     order_doc = {
-        "id": str(uuid.uuid4()),
-        "order_number": f"BAS-{now.year}-{seq:04d}",
+        "id": order_id,
+        "order_number": order_number,
         "user_id": user["id"],
         "items": [item.model_dump() for item in payload.items],
         "shipping": payload.shipping.model_dump(),
         "subtotal": subtotal,
         "shipping_cost": shipping_cost,
         "total": total,
-        "status": "In Bearbeitung",
+        # Awaiting payment when a PSP is configured; otherwise treat as placed.
+        "status": "pending" if mollie.is_configured() else "In Bearbeitung",
         "created_at": now.isoformat(),
+        "payment_id": None,
+        "payment_status": None,
+        "paid_at": None,
     }
     await db.orders.insert_one(order_doc)
-    return Order(**order_doc)
+
+    checkout_url = None
+    if mollie.is_configured():
+        try:
+            payment = await mollie.create_payment(
+                amount_eur=total,
+                description=f"Beauty Am Schloss · Bestellung {order_number}",
+                redirect_url=f"{FRONTEND_URL}/checkout/complete?order={order_id}",
+                webhook_url=f"{BACKEND_PUBLIC_URL}/api/webhook/mollie" if BACKEND_PUBLIC_URL else None,
+                metadata={"order_id": order_id, "order_number": order_number},
+            )
+        except Exception as exc:  # noqa: BLE001
+            logger.error("Mollie payment creation failed for order %s: %s", order_id, exc)
+            await db.orders.update_one({"id": order_id}, {"$set": {"status": "payment_error"}})
+            raise HTTPException(status.HTTP_502_BAD_GATEWAY, "Zahlung konnte nicht initialisiert werden.")
+        await db.orders.update_one(
+            {"id": order_id},
+            {"$set": {"payment_id": payment["id"], "payment_status": payment["status"]}},
+        )
+        order_doc["payment_id"] = payment["id"]
+        order_doc["payment_status"] = payment["status"]
+        checkout_url = payment["checkout_url"]
+
+    return Order(**order_doc, checkout_url=checkout_url)
 
 
 @api_router.get("/orders", response_model=List[Order])
@@ -588,7 +627,61 @@ async def get_order(order_id: str, user: dict = Depends(get_current_user)):
     return Order(**doc)
 
 
+# ---------- Mollie payment webhook ----------
+async def process_mollie_webhook(payment_id: str) -> dict:
+    """Handle a Mollie webhook callback.
+
+    Mollie only sends the payment ``id``; we fetch the authoritative payment
+    from the Mollie API (using the live key) and update the matching order.
+    We never trust a status sent in the request body.
+    """
+    if not payment_id:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Missing payment id.")
+    if not mollie.is_configured():
+        logger.error("Mollie webhook received but MOLLIE_API_KEY is not configured.")
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "Payment provider not configured.")
+
+    try:
+        payment = await mollie.get_payment(payment_id)
+    except Exception as exc:  # noqa: BLE001
+        logger.error("Failed to fetch Mollie payment %s: %s", payment_id, exc)
+        # Non-2xx makes Mollie retry later, which is the desired behaviour here.
+        raise HTTPException(status.HTTP_502_BAD_GATEWAY, "Could not verify payment with Mollie.")
+
+    mollie_status = payment.get("status", "")
+    order_status = mollie.map_status(mollie_status)
+    order_id = (payment.get("metadata") or {}).get("order_id")
+
+    query = {"id": order_id} if order_id else {"payment_id": payment_id}
+    update = {"payment_status": mollie_status, "status": order_status}
+    if mollie_status == "paid":
+        update["paid_at"] = datetime.now(timezone.utc).isoformat()
+
+    result = await db.orders.update_one(query, {"$set": update})
+    if result.matched_count == 0:
+        logger.warning(
+            "Mollie webhook: no order matched payment %s (order_id=%s, status=%s)",
+            payment_id, order_id, mollie_status,
+        )
+    else:
+        logger.info("Mollie webhook: order %s -> %s (mollie=%s)", order_id, order_status, mollie_status)
+
+    # Always 200 once handled so Mollie stops retrying.
+    return {"status": "ok"}
+
+
+@api_router.post("/webhook/mollie")
+async def mollie_webhook(id: str = Form(default="")):
+    return await process_mollie_webhook(id)
+
+
 app.include_router(api_router)
+
+
+# Bare path alias in case the ingress forwards non-/api paths to the backend.
+@app.post("/webhook/mollie")
+async def mollie_webhook_root(id: str = Form(default="")):
+    return await process_mollie_webhook(id)
 
 # Mount static product images under /api so K8s ingress routes to backend
 STATIC_DIR = Path(__file__).parent / "static"
