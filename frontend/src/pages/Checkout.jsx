@@ -83,6 +83,14 @@ export default function Checkout() {
           postal: form.postal, city: form.city, country: form.country, email: form.email,
         },
       });
+      if (order.checkout_url) {
+        // A payment provider (Mollie) is configured: hand off to its hosted
+        // checkout. We return to /checkout/complete?order=<id> afterwards.
+        clear();
+        window.location.assign(order.checkout_url);
+        return;
+      }
+      // No payment provider configured — the order is placed directly.
       setOrderNumber(order.order_number);
       setPlaced(true);
       clear();

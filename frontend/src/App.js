@@ -6,6 +6,7 @@ import Login from "@/pages/Login";
 import MyAccount from "@/pages/MyAccount";
 import OrderHistory from "@/pages/OrderHistory";
 import Checkout from "@/pages/Checkout";
+import CheckoutComplete from "@/pages/CheckoutComplete";
 import RequireAuth from "@/components/site/RequireAuth";
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
           <Route path="/account" element={<RequireAuth><MyAccount /></RequireAuth>} />
           <Route path="/account/orders" element={<RequireAuth><OrderHistory /></RequireAuth>} />
           <Route path="/checkout" element={<RequireAuth><Checkout /></RequireAuth>} />
+          <Route path="/checkout/complete" element={<RequireAuth><CheckoutComplete /></RequireAuth>} />
         </Routes>
       </BrowserRouter>
       <Toaster
