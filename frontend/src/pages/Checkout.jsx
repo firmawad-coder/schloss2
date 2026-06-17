@@ -1,15 +1,16 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { ArrowLeft, ShoppingBag, Lock, CheckCircle2 } from "lucide-react";
 import SiteLayout from "@/components/site/SiteLayout";
+import { useAuth } from "@/lib/auth";
 import { useCart, formatEUR } from "@/lib/cart";
-import { resolveImage } from "@/lib/api";
+import { resolveImage, createOrder } from "@/lib/api";
 
 const FREE_SHIP = 150;
 const SHIP_COST = 9.9;
 
-const FIELDS = [
+const FIELD_GROUPS = [
   { section: "Kontakt", rows: [[{ name: "email", label: "E-Mail", type: "email", w: "full" }]] },
   {
     section: "Lieferadresse",
@@ -40,28 +41,59 @@ const FIELDS = [
 
 export default function Checkout() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { items, subtotal, count, clear } = useCart();
+
   const [placed, setPlaced] = useState(false);
-  const [orderId, setOrderId] = useState("");
+  const [orderNumber, setOrderNumber] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
     email: "", firstName: "", lastName: "", address: "",
     postal: "", city: "", country: "Deutschland", card: "", expiry: "", cvc: "",
   });
 
+  // Prefill from the logged-in user's profile.
+  useEffect(() => {
+    if (!user) return;
+    const [firstName, ...rest] = (user.name || "").split(" ");
+    setForm((f) => ({
+      ...f,
+      email: f.email || user.email || "",
+      firstName: f.firstName || firstName || "",
+      lastName: f.lastName || rest.join(" ") || "",
+      address: f.address || user.address || "",
+    }));
+  }, [user]);
+
   const shipping = subtotal >= FREE_SHIP || subtotal === 0 ? 0 : SHIP_COST;
   const total = subtotal + shipping;
-
   const update = (name) => (e) => setForm((f) => ({ ...f, [name]: e.target.value }));
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (items.length === 0) return;
-    const id = `BAS-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
-    setOrderId(id);
-    setPlaced(true);
-    clear();
-    toast.success("Ihre Bestellung wurde aufgenommen.");
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (items.length === 0 || submitting) return;
+    setSubmitting(true);
+    try {
+      const order = await createOrder({
+        items: items.map((i) => ({
+          id: i.id, name: i.name, brand: i.brand, price: i.price, qty: i.qty, image: i.image, size: i.size,
+        })),
+        shipping: {
+          first_name: form.firstName, last_name: form.lastName, address: form.address,
+          postal: form.postal, city: form.city, country: form.country, email: form.email,
+        },
+      });
+      setOrderNumber(order.order_number);
+      setPlaced(true);
+      clear();
+      toast.success("Ihre Bestellung wurde aufgenommen.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (err) {
+      const msg = err?.response?.data?.detail;
+      toast.error(typeof msg === "string" ? msg : "Bestellung konnte nicht abgeschlossen werden.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   // Order confirmed
@@ -78,7 +110,7 @@ export default function Checkout() {
             Vielen Dank für Ihr Vertrauen. Eine Bestätigung wurde an Ihre E-Mail gesendet.
           </p>
           <p className="text-[11px] tracking-[0.3em] uppercase text-[#8a7a6c] mb-12">
-            Bestellnummer · <span className="text-[#1c1714]">{orderId}</span>
+            Bestellnummer · <span className="text-[#1c1714]">{orderNumber}</span>
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
@@ -106,9 +138,7 @@ export default function Checkout() {
       <SiteLayout>
         <section className="max-w-[640px] mx-auto px-6 py-24 lg:py-32 text-center" data-testid="bas-checkout-empty">
           <ShoppingBag size={32} strokeWidth={1} className="text-[#a8814a] mx-auto mb-8" />
-          <h1 className="font-display text-[clamp(2rem,4vw,3rem)] font-light text-[#1c1714] mb-5">
-            Ihr Cabinet ist leer.
-          </h1>
+          <h1 className="font-display text-[clamp(2rem,4vw,3rem)] font-light text-[#1c1714] mb-5">Ihr Cabinet ist leer.</h1>
           <p className="text-[15px] text-[#6a5f55] font-light mb-10">
             Fügen Sie zunächst ein Parfum hinzu, um zur Kasse zu gehen.
           </p>
@@ -144,25 +174,23 @@ export default function Checkout() {
         <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14" data-testid="bas-checkout-form">
           {/* Form fields */}
           <div className="lg:col-span-7 space-y-12">
-            {FIELDS.map((group) => (
+            {FIELD_GROUPS.map((group) => (
               <fieldset key={group.section}>
-                <legend className="text-[10px] tracking-[0.36em] uppercase text-[#a8814a] mb-7 font-italiana">
-                  {group.section}
-                </legend>
+                <legend className="text-[10px] tracking-[0.36em] uppercase text-[#a8814a] mb-7 font-italiana">{group.section}</legend>
                 <div className="space-y-5">
                   {group.rows.map((row, ri) => (
                     <div key={ri} className="flex flex-col sm:flex-row gap-5">
-                      {row.map((field) => (
-                        <label key={field.name} className={`flex flex-col ${field.w === "half" ? "sm:w-1/2" : "w-full"}`}>
-                          <span className="text-[9px] tracking-[0.3em] uppercase text-[#6a5f55] mb-2">{field.label}</span>
+                      {row.map((f) => (
+                        <label key={f.name} className={`flex flex-col ${f.w === "half" ? "sm:w-1/2" : "w-full"}`}>
+                          <span className="text-[9px] tracking-[0.3em] uppercase text-[#6a5f55] mb-2">{f.label}</span>
                           <input
-                            type={field.type || "text"}
+                            type={f.type || "text"}
                             required
-                            value={form[field.name]}
-                            onChange={update(field.name)}
-                            placeholder={field.placeholder || ""}
+                            value={form[f.name]}
+                            onChange={update(f.name)}
+                            placeholder={f.placeholder || ""}
                             className="bg-transparent border-b border-[#ddd2bf] focus:border-[#a8814a] outline-none py-3 text-[15px] text-[#1c1714] placeholder-[#b8ac9a] transition-colors duration-300"
-                            data-testid={`bas-checkout-${field.name}`}
+                            data-testid={`bas-checkout-${f.name}`}
                           />
                         </label>
                       ))}
@@ -176,9 +204,7 @@ export default function Checkout() {
           {/* Order summary */}
           <aside className="lg:col-span-5">
             <div className="border border-[#ddd2bf] bg-[#faf6ef] p-8 lg:sticky lg:top-[164px]" data-testid="bas-checkout-summary">
-              <div className="text-[10px] tracking-[0.36em] uppercase text-[#a8814a] mb-7 font-italiana">
-                Ihre Bestellung ({count})
-              </div>
+              <div className="text-[10px] tracking-[0.36em] uppercase text-[#a8814a] mb-7 font-italiana">Ihre Bestellung ({count})</div>
 
               <ul className="divide-y divide-[#ddd2bf] mb-7">
                 {items.map((item) => (
@@ -214,10 +240,11 @@ export default function Checkout() {
 
               <button
                 type="submit"
-                className="w-full mt-8 inline-flex items-center justify-center gap-3 bg-[#1c1714] text-[#f5f0e8] hover:bg-[#a8814a] transition-colors duration-700 py-[18px] uppercase text-[11px] tracking-[0.32em]"
+                disabled={submitting}
+                className="w-full mt-8 inline-flex items-center justify-center gap-3 bg-[#1c1714] text-[#f5f0e8] hover:bg-[#a8814a] transition-colors duration-700 py-[18px] uppercase text-[11px] tracking-[0.32em] disabled:opacity-60"
                 data-testid="bas-checkout-place-order"
               >
-                <Lock size={13} strokeWidth={1.4} /> Bestellung aufgeben
+                <Lock size={13} strokeWidth={1.4} /> {submitting ? "Wird verarbeitet…" : "Bestellung aufgeben"}
               </button>
               <p className="text-[10px] tracking-[0.18em] text-[#8a7a6c] mt-4 text-center leading-relaxed">
                 Sichere, verschlüsselte Zahlung. Drei kuratierte Proben zu jeder Bestellung.

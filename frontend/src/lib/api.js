@@ -19,3 +19,8 @@ export const fetchProducts = (params = {}) =>
 export const fetchReviews = () => api.get("/reviews").then((r) => r.data);
 export const subscribeNewsletter = (email) =>
   api.post("/newsletter", { email }).then((r) => r.data);
+
+// ---------- Orders ----------
+export const createOrder = (payload) => api.post("/orders", payload).then((r) => r.data);
+export const fetchOrders = () => api.get("/orders").then((r) => r.data);
+export const fetchOrder = (id) => api.get(`/orders/${id}`).then((r) => r.data);

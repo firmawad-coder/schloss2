@@ -1,39 +1,9 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Package, ChevronRight } from "lucide-react";
 import SiteLayout from "@/components/site/SiteLayout";
 import { formatEUR } from "@/lib/cart";
-
-export const DEMO_ORDERS = [
-  {
-    id: "BAS-2026-0147",
-    date: "14. Mai 2026",
-    status: "Geliefert",
-    items: [
-      { name: "Oud Noir Impérial", brand: "Fragrance Du Bois", qty: 1, price: 450 },
-      { name: "Naxos Reserve", brand: "Xerjoff", qty: 1, price: 290 },
-    ],
-    total: 740,
-  },
-  {
-    id: "BAS-2026-0098",
-    date: "27. März 2026",
-    status: "Versandt",
-    items: [
-      { name: "Diaghilev Élixir", brand: "Roja Parfums", qty: 1, price: 450 },
-    ],
-    total: 450,
-  },
-  {
-    id: "BAS-2025-0421",
-    date: "09. Dezember 2025",
-    status: "Geliefert",
-    items: [
-      { name: "Régent's Crown", brand: "Boadicea the Victorious", qty: 1, price: 420 },
-      { name: "Doctor Babor Elixir 24", brand: "Doctor Babor", qty: 2, price: 295 },
-    ],
-    total: 1010,
-  },
-];
+import { fetchOrders } from "@/lib/api";
 
 const STATUS_STYLES = {
   Geliefert: "text-[#3f6b4a] border-[#3f6b4a]/30 bg-[#3f6b4a]/8",
@@ -41,7 +11,23 @@ const STATUS_STYLES = {
   "In Bearbeitung": "text-[#6a5f55] border-[#6a5f55]/30 bg-[#6a5f55]/8",
 };
 
+export const formatOrderDate = (iso) => {
+  try {
+    return new Date(iso).toLocaleDateString("de-DE", { day: "2-digit", month: "long", year: "numeric" });
+  } catch {
+    return iso;
+  }
+};
+
 export default function OrderHistory() {
+  const [orders, setOrders] = useState(null);
+
+  useEffect(() => {
+    fetchOrders()
+      .then(setOrders)
+      .catch(() => setOrders([]));
+  }, []);
+
   return (
     <SiteLayout>
       <section className="max-w-[1040px] mx-auto px-6 lg:px-10 py-16 lg:py-24" data-testid="bas-orders-page">
@@ -61,26 +47,33 @@ export default function OrderHistory() {
           Bestell<span className="italic text-[#a8814a]">historie.</span>
         </h1>
 
-        {DEMO_ORDERS.length === 0 ? (
-          <div className="border border-[#ddd2bf] py-24 flex flex-col items-center text-center">
+        {orders === null ? (
+          <div className="py-24 flex justify-center">
+            <div className="w-8 h-8 border border-[#ddd2bf] border-t-[#a8814a] rounded-full animate-spin" />
+          </div>
+        ) : orders.length === 0 ? (
+          <div className="border border-[#ddd2bf] py-24 flex flex-col items-center text-center" data-testid="bas-orders-empty">
             <Package size={28} strokeWidth={1} className="text-[#a8814a] mb-6" />
             <p className="font-display text-2xl text-[#1c1714] font-light mb-3">Noch keine Bestellungen</p>
-            <Link to="/" className="mt-6 text-[10px] tracking-[0.32em] uppercase text-[#1c1714] hover:text-[#a8814a] bas-link">
+            <p className="text-[13px] text-[#6a5f55] font-light max-w-[300px] leading-relaxed">
+              Sobald Sie Ihre erste Bestellung aufgegeben haben, erscheint sie hier.
+            </p>
+            <Link to="/" className="mt-8 text-[10px] tracking-[0.32em] uppercase text-[#1c1714] hover:text-[#a8814a] bas-link">
               Parfums entdecken
             </Link>
           </div>
         ) : (
           <ul className="space-y-6">
-            {DEMO_ORDERS.map((order) => (
+            {orders.map((order) => (
               <li
                 key={order.id}
                 className="border border-[#ddd2bf] bg-[#faf6ef] hover:border-[#a8814a]/50 transition-colors duration-500"
-                data-testid={`bas-order-${order.id}`}
+                data-testid={`bas-order-${order.order_number}`}
               >
                 <div className="flex flex-wrap items-center justify-between gap-4 px-7 py-6 border-b border-[#ddd2bf]">
                   <div>
-                    <div className="font-display text-[22px] text-[#1c1714] font-light leading-none">{order.id}</div>
-                    <div className="text-[10px] tracking-[0.28em] uppercase text-[#8a7a6c] mt-2">{order.date}</div>
+                    <div className="font-display text-[22px] text-[#1c1714] font-light leading-none">{order.order_number}</div>
+                    <div className="text-[10px] tracking-[0.28em] uppercase text-[#8a7a6c] mt-2">{formatOrderDate(order.created_at)}</div>
                   </div>
                   <span
                     className={`text-[9px] tracking-[0.3em] uppercase px-4 py-2 border ${STATUS_STYLES[order.status] || STATUS_STYLES["In Bearbeitung"]}`}
@@ -94,7 +87,7 @@ export default function OrderHistory() {
                     {order.items.map((item, i) => (
                       <li key={i} className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0">
                         <div className="min-w-0">
-                          <div className="text-[9px] tracking-[0.32em] uppercase text-[#a8814a] mb-1">{item.brand}</div>
+                          {item.brand && <div className="text-[9px] tracking-[0.32em] uppercase text-[#a8814a] mb-1">{item.brand}</div>}
                           <div className="font-display text-[17px] text-[#1c1714] font-light leading-tight truncate">
                             {item.name} <span className="text-[#8a7a6c] text-[13px]">× {item.qty}</span>
                           </div>
@@ -107,15 +100,7 @@ export default function OrderHistory() {
 
                 <div className="flex items-center justify-between gap-4 px-7 py-5 border-t border-[#ddd2bf] bg-[#f0e9dc]">
                   <span className="text-[10px] tracking-[0.3em] uppercase text-[#6a5f55]">Gesamtbetrag</span>
-                  <div className="flex items-center gap-6">
-                    <span className="font-display text-2xl text-[#1c1714] font-light">{formatEUR(order.total)}</span>
-                    <button
-                      className="hidden sm:inline-flex items-center gap-1 text-[10px] tracking-[0.3em] uppercase text-[#1c1714] hover:text-[#a8814a] transition-colors"
-                      data-testid={`bas-order-details-${order.id}`}
-                    >
-                      Details <ChevronRight size={13} strokeWidth={1.4} />
-                    </button>
-                  </div>
+                  <span className="font-display text-2xl text-[#1c1714] font-light">{formatEUR(order.total)}</span>
                 </div>
               </li>
             ))}
