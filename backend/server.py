@@ -1,4 +1,5 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, Depends, HTTPException, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
@@ -10,6 +11,8 @@ from pydantic import BaseModel, Field, ConfigDict, EmailStr
 from typing import List, Optional
 import uuid
 from datetime import datetime, timezone
+
+from auth import hash_password, verify_password, create_access_token, decode_token
 
 
 ROOT_DIR = Path(__file__).parent
@@ -66,6 +69,85 @@ class NewsletterEntry(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     email: str
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+
+# ---------- Account & Order Models ----------
+class UserPublic(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    id: str
+    name: str
+    email: str
+    phone: Optional[str] = ""
+    address: Optional[str] = ""
+    created_at: str
+
+
+class RegisterRequest(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    email: EmailStr
+    password: str = Field(min_length=6, max_length=128)
+
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: UserPublic
+
+
+class ProfileUpdate(BaseModel):
+    name: Optional[str] = Field(default=None, max_length=120)
+    phone: Optional[str] = Field(default=None, max_length=40)
+    address: Optional[str] = Field(default=None, max_length=240)
+
+
+class OrderItem(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    id: Optional[str] = None
+    name: str
+    brand: Optional[str] = ""
+    price: float
+    qty: int = Field(ge=1)
+    image: Optional[str] = ""
+    size: Optional[str] = None
+
+
+class ShippingInfo(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    first_name: str
+    last_name: str
+    address: str
+    postal: str
+    city: str
+    country: str
+    email: Optional[str] = None
+
+
+class OrderCreate(BaseModel):
+    items: List[OrderItem]
+    shipping: ShippingInfo
+
+
+class Order(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    id: str
+    order_number: str
+    user_id: str
+    items: List[OrderItem]
+    shipping: ShippingInfo
+    subtotal: float
+    shipping_cost: float
+    total: float
+    status: str
+    created_at: str
 
 
 # ---------- Seed: Parfum-Häuser (Primary) + Pflege (Secondary) ----------
@@ -388,6 +470,122 @@ async def subscribe_newsletter(payload: NewsletterSubscribe):
     entry = NewsletterEntry(email=payload.email)
     await db.newsletter.insert_one(entry.model_dump())
     return {"status": "subscribed", "message": "Willkommen im Cercle Beauty Am Schloss."}
+
+
+# ---------- Auth ----------
+bearer_scheme = HTTPBearer(auto_error=False)
+
+FREE_SHIPPING_THRESHOLD = 150.0
+SHIPPING_COST = 9.9
+
+
+def public_user(doc: dict) -> UserPublic:
+    return UserPublic(
+        id=doc["id"],
+        name=doc["name"],
+        email=doc["email"],
+        phone=doc.get("phone", ""),
+        address=doc.get("address", ""),
+        created_at=doc["created_at"],
+    )
+
+
+async def get_current_user(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
+):
+    if credentials is None:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Nicht angemeldet.")
+    user_id = decode_token(credentials.credentials)
+    if not user_id:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Sitzung ungültig oder abgelaufen.")
+    user = await db.users.find_one({"id": user_id}, {"_id": 0})
+    if not user:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Benutzer nicht gefunden.")
+    return user
+
+
+@api_router.post("/auth/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
+async def register(req: RegisterRequest):
+    email = req.email.lower().strip()
+    existing = await db.users.find_one({"email": email})
+    if existing:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Diese E-Mail ist bereits registriert.")
+    user_doc = {
+        "id": str(uuid.uuid4()),
+        "name": req.name.strip(),
+        "email": email,
+        "password_hash": hash_password(req.password),
+        "phone": "",
+        "address": "",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.users.insert_one(user_doc)
+    token = create_access_token(user_doc["id"])
+    return TokenResponse(access_token=token, user=public_user(user_doc))
+
+
+@api_router.post("/auth/login", response_model=TokenResponse)
+async def login(req: LoginRequest):
+    email = req.email.lower().strip()
+    user = await db.users.find_one({"email": email})
+    if not user or not verify_password(req.password, user.get("password_hash", "")):
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "E-Mail oder Passwort ist falsch.")
+    token = create_access_token(user["id"])
+    return TokenResponse(access_token=token, user=public_user(user))
+
+
+@api_router.get("/auth/me", response_model=UserPublic)
+async def read_me(user: dict = Depends(get_current_user)):
+    return public_user(user)
+
+
+@api_router.put("/auth/me", response_model=UserPublic)
+async def update_me(update: ProfileUpdate, user: dict = Depends(get_current_user)):
+    changes = update.model_dump(exclude_none=True)
+    if changes:
+        await db.users.update_one({"id": user["id"]}, {"$set": changes})
+        user = await db.users.find_one({"id": user["id"]}, {"_id": 0})
+    return public_user(user)
+
+
+# ---------- Orders ----------
+@api_router.post("/orders", response_model=Order, status_code=status.HTTP_201_CREATED)
+async def create_order(payload: OrderCreate, user: dict = Depends(get_current_user)):
+    if not payload.items:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Der Warenkorb ist leer.")
+    subtotal = round(sum(item.price * item.qty for item in payload.items), 2)
+    shipping_cost = 0.0 if subtotal >= FREE_SHIPPING_THRESHOLD else SHIPPING_COST
+    total = round(subtotal + shipping_cost, 2)
+    now = datetime.now(timezone.utc)
+    seq = await db.orders.count_documents({}) + 1
+    order_doc = {
+        "id": str(uuid.uuid4()),
+        "order_number": f"BAS-{now.year}-{seq:04d}",
+        "user_id": user["id"],
+        "items": [item.model_dump() for item in payload.items],
+        "shipping": payload.shipping.model_dump(),
+        "subtotal": subtotal,
+        "shipping_cost": shipping_cost,
+        "total": total,
+        "status": "In Bearbeitung",
+        "created_at": now.isoformat(),
+    }
+    await db.orders.insert_one(order_doc)
+    return Order(**order_doc)
+
+
+@api_router.get("/orders", response_model=List[Order])
+async def list_orders(user: dict = Depends(get_current_user)):
+    docs = await db.orders.find({"user_id": user["id"]}, {"_id": 0}).sort("created_at", -1).to_list(200)
+    return [Order(**doc) for doc in docs]
+
+
+@api_router.get("/orders/{order_id}", response_model=Order)
+async def get_order(order_id: str, user: dict = Depends(get_current_user)):
+    doc = await db.orders.find_one({"id": order_id, "user_id": user["id"]}, {"_id": 0})
+    if not doc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Bestellung nicht gefunden.")
+    return Order(**doc)
 
 
 app.include_router(api_router)
