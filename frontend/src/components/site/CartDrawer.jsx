@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { Sheet, SheetContent, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { useCart, formatEUR } from "@/lib/cart";
 import { resolveImage } from "@/lib/api";
@@ -5,7 +6,13 @@ import { X, Plus, Minus, ShoppingBag, ArrowRight, Gift } from "lucide-react";
 
 export default function CartDrawer({ open, onOpenChange }) {
   const { items, subtotal, count, setQty, remove, clear } = useCart();
+  const navigate = useNavigate();
   const FREE_SHIP = 150;
+
+  const goToCheckout = () => {
+    onOpenChange(false);
+    navigate("/checkout");
+  };
   const remaining = Math.max(0, FREE_SHIP - subtotal);
   const progress = Math.min(100, (subtotal / FREE_SHIP) * 100);
 
@@ -101,6 +108,7 @@ export default function CartDrawer({ open, onOpenChange }) {
               </div>
               <p className="text-[10px] tracking-[0.2em] text-[#8a7a6c] mb-6">Steuern und Versand werden beim Checkout berechnet.</p>
               <button
+                onClick={goToCheckout}
                 className="w-full inline-flex items-center justify-center gap-3 bg-[#1c1714] text-[#f5f0e8] hover:bg-[#a8814a] transition-colors duration-700 py-[18px] uppercase text-[11px] tracking-[0.32em]"
                 data-testid="bas-cart-checkout"
               >

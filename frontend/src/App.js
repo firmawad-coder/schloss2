@@ -2,6 +2,9 @@ import "@/App.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "sonner";
 import Home from "@/pages/Home";
+import MyAccount from "@/pages/MyAccount";
+import OrderHistory from "@/pages/OrderHistory";
+import Checkout from "@/pages/Checkout";
 
 function App() {
   return (
@@ -9,6 +12,9 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/account" element={<MyAccount />} />
+          <Route path="/account/orders" element={<OrderHistory />} />
+          <Route path="/checkout" element={<Checkout />} />
         </Routes>
       </BrowserRouter>
       <Toaster

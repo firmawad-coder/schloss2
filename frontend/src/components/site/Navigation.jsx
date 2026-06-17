@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Search, User, Menu, X, ShoppingBag, Phone } from "lucide-react";
 import { useCart } from "@/lib/cart";
 
@@ -22,10 +23,16 @@ const TOP_BAR = [
 export default function Navigation({ onCartOpen }) {
   const [open, setOpen] = useState(false);
   const { count } = useCart();
+  const navigate = useNavigate();
 
   const scrollTo = (id) => {
     const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: "smooth" });
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
+    } else {
+      // On a sub-page: go home, then scroll to the section once it mounts.
+      navigate("/", { state: { scrollTo: id } });
+    }
     setOpen(false);
   };
 
@@ -74,7 +81,7 @@ export default function Navigation({ onCartOpen }) {
           </button>
 
           {/* Logo block (centered, refined typography) */}
-          <a href="/" className="justify-self-center flex flex-col items-center select-none group" data-testid="bas-logo">
+          <Link to="/" className="justify-self-center flex flex-col items-center select-none group" data-testid="bas-logo">
             <span className="flex items-center gap-3 mb-2">
               <span className="h-px w-6 bg-[#a8814a]" />
               <span className="font-italiana text-[9px] tracking-[0.5em] text-[#a8814a]">PARFUMERIE · BERLIN</span>
@@ -83,7 +90,7 @@ export default function Navigation({ onCartOpen }) {
             <span className="font-display text-[26px] sm:text-[30px] lg:text-[34px] tracking-[0.2em] text-[#1c1714] leading-none">
               BEAUTY <span className="font-display italic font-light text-[#a8814a] tracking-normal">am</span> SCHLOSS
             </span>
-          </a>
+          </Link>
 
           {/* Right links */}
           <ul className="hidden lg:flex items-center gap-9 justify-self-end">
@@ -102,9 +109,9 @@ export default function Navigation({ onCartOpen }) {
               <button data-testid="bas-nav-search" aria-label="Suche" className="text-[#1c1714] hover:text-[#a8814a] transition-colors">
                 <Search size={15} strokeWidth={1.2} />
               </button>
-              <button data-testid="bas-nav-account" aria-label="Konto" className="text-[#1c1714] hover:text-[#a8814a] transition-colors">
+              <Link to="/account" data-testid="bas-nav-account" aria-label="Konto" className="text-[#1c1714] hover:text-[#a8814a] transition-colors">
                 <User size={15} strokeWidth={1.2} />
-              </button>
+              </Link>
               <button
                 onClick={onCartOpen}
                 data-testid="bas-nav-cart"
@@ -145,6 +152,11 @@ export default function Navigation({ onCartOpen }) {
                   </button>
                 </li>
               ))}
+              <li>
+                <Link to="/account" onClick={() => setOpen(false)} className="flex items-center gap-3 text-sm tracking-[0.32em] uppercase text-[#1c1714]" data-testid="bas-nav-mobile-account">
+                  <User size={15} strokeWidth={1.2} className="text-[#a8814a]" /> Konto
+                </Link>
+              </li>
               <li className="pt-5 border-t border-[#ddd2bf]/60 flex items-center gap-3 text-[#4a3f37] text-xs tracking-[0.24em] uppercase">
                 <Phone size={14} strokeWidth={1.2} className="text-[#a8814a]" />
                 +49 30 1234 5678
