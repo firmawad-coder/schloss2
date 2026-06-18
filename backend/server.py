@@ -1,15 +1,22 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, Depends, HTTPException, status, Form
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
+import re
 import logging
+import unicodedata
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict, EmailStr
 from typing import List, Optional
 import uuid
 from datetime import datetime, timezone
+
+from auth import hash_password, verify_password, create_access_token, decode_token
+import mollie
+import emailer
 
 
 ROOT_DIR = Path(__file__).parent
@@ -18,6 +25,10 @@ load_dotenv(ROOT_DIR / '.env')
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
+
+# Public base URLs used to build Mollie redirect/webhook URLs.
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000').rstrip('/')
+BACKEND_PUBLIC_URL = os.environ.get('BACKEND_PUBLIC_URL', '').rstrip('/')
 
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
@@ -28,6 +39,7 @@ class Product(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    slug: Optional[str] = None
     name: str
     subtitle: Optional[str] = ""
     brand: str
@@ -66,6 +78,92 @@ class NewsletterEntry(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     email: str
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+
+# ---------- Account & Order Models ----------
+class UserPublic(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    id: str
+    name: str
+    email: str
+    phone: Optional[str] = ""
+    address: Optional[str] = ""
+    created_at: str
+
+
+class RegisterRequest(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    email: EmailStr
+    password: str = Field(min_length=6, max_length=128)
+
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: UserPublic
+
+
+class ProfileUpdate(BaseModel):
+    name: Optional[str] = Field(default=None, max_length=120)
+    phone: Optional[str] = Field(default=None, max_length=40)
+    address: Optional[str] = Field(default=None, max_length=240)
+
+
+class OrderItem(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    id: Optional[str] = None
+    name: str
+    brand: Optional[str] = ""
+    price: float
+    qty: int = Field(ge=1)
+    image: Optional[str] = ""
+    size: Optional[str] = None
+
+
+class ShippingInfo(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    first_name: str
+    last_name: str
+    address: str
+    postal: str
+    city: str
+    country: str
+    email: Optional[str] = None
+
+
+class OrderCreate(BaseModel):
+    items: List[OrderItem]
+    shipping: ShippingInfo
+
+
+class Order(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    id: str
+    order_number: str
+    user_id: Optional[str] = None
+    is_guest: bool = False
+    guest_email: Optional[str] = None
+    items: List[OrderItem]
+    shipping: ShippingInfo
+    subtotal: float
+    shipping_cost: float
+    total: float
+    status: str
+    created_at: str
+    payment_id: Optional[str] = None
+    payment_status: Optional[str] = None
+    paid_at: Optional[str] = None
+    # Returned on creation so the client can redirect to Mollie; not persisted.
+    checkout_url: Optional[str] = None
 
 
 # ---------- Seed: Parfum-Häuser (Primary) + Pflege (Secondary) ----------
@@ -363,9 +461,22 @@ async def get_brands(category: Optional[str] = None):
     return brands
 
 
+def product_slug(name: str) -> str:
+    """Deterministic URL slug from a product name (accent/umlaut safe)."""
+    normalized = unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode()
+    return re.sub(r"[^a-z0-9]+", "-", normalized.lower()).strip("-")
+
+
+def build_product(seed: dict) -> Product:
+    slug = product_slug(seed["name"])
+    # Use the slug as a stable id so cart de-duplication and detail URLs are
+    # consistent across requests (seed entries have no persistent id).
+    return Product(**{**seed, "id": slug, "slug": slug})
+
+
 @api_router.get("/products", response_model=List[Product])
 async def get_products(filter: Optional[str] = None, category: Optional[str] = None):
-    products = [Product(**p) for p in PRODUCTS_SEED]
+    products = [build_product(p) for p in PRODUCTS_SEED]
     if category:
         products = [p for p in products if p.category == category]
     if filter == "new":
@@ -373,6 +484,14 @@ async def get_products(filter: Optional[str] = None, category: Optional[str] = N
     elif filter == "bestseller":
         products = [p for p in products if p.is_bestseller]
     return products
+
+
+@api_router.get("/products/{slug}", response_model=Product)
+async def get_product(slug: str):
+    for seed in PRODUCTS_SEED:
+        if product_slug(seed["name"]) == slug:
+            return build_product(seed)
+    raise HTTPException(status.HTTP_404_NOT_FOUND, "Produkt nicht gefunden.")
 
 
 @api_router.get("/reviews")
@@ -390,7 +509,261 @@ async def subscribe_newsletter(payload: NewsletterSubscribe):
     return {"status": "subscribed", "message": "Willkommen im Cercle Beauty Am Schloss."}
 
 
+# ---------- Auth ----------
+bearer_scheme = HTTPBearer(auto_error=False)
+
+FREE_SHIPPING_THRESHOLD = 150.0
+SHIPPING_COST = 9.9
+
+
+def public_user(doc: dict) -> UserPublic:
+    return UserPublic(
+        id=doc["id"],
+        name=doc["name"],
+        email=doc["email"],
+        phone=doc.get("phone", ""),
+        address=doc.get("address", ""),
+        created_at=doc["created_at"],
+    )
+
+
+async def get_current_user(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
+):
+    if credentials is None:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Nicht angemeldet.")
+    user_id = decode_token(credentials.credentials)
+    if not user_id:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Sitzung ungültig oder abgelaufen.")
+    user = await db.users.find_one({"id": user_id}, {"_id": 0})
+    if not user:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Benutzer nicht gefunden.")
+    return user
+
+
+async def get_optional_user(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
+):
+    """Return the current user if a valid token is present, else None (guest)."""
+    if credentials is None:
+        return None
+    user_id = decode_token(credentials.credentials)
+    if not user_id:
+        return None
+    return await db.users.find_one({"id": user_id}, {"_id": 0})
+
+
+@api_router.post("/auth/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
+async def register(req: RegisterRequest):
+    email = req.email.lower().strip()
+    existing = await db.users.find_one({"email": email})
+    if existing:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Diese E-Mail ist bereits registriert.")
+    user_doc = {
+        "id": str(uuid.uuid4()),
+        "name": req.name.strip(),
+        "email": email,
+        "password_hash": hash_password(req.password),
+        "phone": "",
+        "address": "",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.users.insert_one(user_doc)
+    token = create_access_token(user_doc["id"])
+    return TokenResponse(access_token=token, user=public_user(user_doc))
+
+
+@api_router.post("/auth/login", response_model=TokenResponse)
+async def login(req: LoginRequest):
+    email = req.email.lower().strip()
+    user = await db.users.find_one({"email": email})
+    if not user or not verify_password(req.password, user.get("password_hash", "")):
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "E-Mail oder Passwort ist falsch.")
+    token = create_access_token(user["id"])
+    return TokenResponse(access_token=token, user=public_user(user))
+
+
+@api_router.get("/auth/me", response_model=UserPublic)
+async def read_me(user: dict = Depends(get_current_user)):
+    return public_user(user)
+
+
+@api_router.put("/auth/me", response_model=UserPublic)
+async def update_me(update: ProfileUpdate, user: dict = Depends(get_current_user)):
+    changes = update.model_dump(exclude_none=True)
+    if changes:
+        await db.users.update_one({"id": user["id"]}, {"$set": changes})
+        user = await db.users.find_one({"id": user["id"]}, {"_id": 0})
+    return public_user(user)
+
+
+# ---------- Orders ----------
+@api_router.post("/orders", response_model=Order, status_code=status.HTTP_201_CREATED)
+async def create_order(payload: OrderCreate, user: Optional[dict] = Depends(get_optional_user)):
+    if not payload.items:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Der Warenkorb ist leer.")
+    is_guest = user is None
+    guest_email = (payload.shipping.email or "").strip().lower() if is_guest else None
+    if is_guest and not guest_email:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "E-Mail ist für die Bestellung erforderlich.")
+    subtotal = round(sum(item.price * item.qty for item in payload.items), 2)
+    shipping_cost = 0.0 if subtotal >= FREE_SHIPPING_THRESHOLD else SHIPPING_COST
+    total = round(subtotal + shipping_cost, 2)
+    now = datetime.now(timezone.utc)
+    seq = await db.orders.count_documents({}) + 1
+    order_id = str(uuid.uuid4())
+    order_number = f"BAS-{now.year}-{seq:04d}"
+    order_doc = {
+        "id": order_id,
+        "order_number": order_number,
+        "user_id": user["id"] if user else None,
+        "is_guest": is_guest,
+        "guest_email": guest_email,
+        "items": [item.model_dump() for item in payload.items],
+        "shipping": payload.shipping.model_dump(),
+        "subtotal": subtotal,
+        "shipping_cost": shipping_cost,
+        "total": total,
+        # Awaiting payment when a PSP is configured; otherwise treat as placed.
+        "status": "pending" if mollie.is_configured() else "In Bearbeitung",
+        "created_at": now.isoformat(),
+        "payment_id": None,
+        "payment_status": None,
+        "paid_at": None,
+    }
+    await db.orders.insert_one(order_doc)
+
+    checkout_url = None
+    if mollie.is_configured():
+        try:
+            payment = await mollie.create_payment(
+                amount_eur=total,
+                description=f"Beauty Am Schloss · Bestellung {order_number}",
+                redirect_url=f"{FRONTEND_URL}/checkout/complete?order={order_id}",
+                webhook_url=f"{BACKEND_PUBLIC_URL}/api/webhook/mollie" if BACKEND_PUBLIC_URL else None,
+                metadata={"order_id": order_id, "order_number": order_number},
+            )
+        except Exception as exc:  # noqa: BLE001
+            logger.error("Mollie payment creation failed for order %s: %s", order_id, exc)
+            await db.orders.update_one({"id": order_id}, {"$set": {"status": "payment_error"}})
+            raise HTTPException(status.HTTP_502_BAD_GATEWAY, "Zahlung konnte nicht initialisiert werden.")
+        await db.orders.update_one(
+            {"id": order_id},
+            {"$set": {"payment_id": payment["id"], "payment_status": payment["status"]}},
+        )
+        order_doc["payment_id"] = payment["id"]
+        order_doc["payment_status"] = payment["status"]
+        checkout_url = payment["checkout_url"]
+    else:
+        # No payment step: the order is placed now, send the confirmation email.
+        order_doc["confirmation_sent"] = True
+        await db.orders.update_one({"id": order_id}, {"$set": {"confirmation_sent": True}})
+        emailer.schedule_order_confirmation(order_doc)
+
+    return Order(**order_doc, checkout_url=checkout_url)
+
+
+@api_router.get("/orders", response_model=List[Order])
+async def list_orders(user: dict = Depends(get_current_user)):
+    docs = await db.orders.find({"user_id": user["id"]}, {"_id": 0}).sort("created_at", -1).to_list(200)
+    return [Order(**doc) for doc in docs]
+
+
+@api_router.get("/orders/{order_id}", response_model=Order)
+async def get_order(order_id: str, user: Optional[dict] = Depends(get_optional_user)):
+    doc = await db.orders.find_one({"id": order_id}, {"_id": 0})
+    if not doc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Bestellung nicht gefunden.")
+    # Access control: orders tied to an account require that account; guest
+    # orders (no user_id) are retrievable by their unguessable id (capability).
+    if doc.get("user_id") and (not user or user["id"] != doc["user_id"]):
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Bestellung nicht gefunden.")
+    # Reconcile with Mollie when still awaiting payment, so the return/success
+    # page is correct even if the webhook is delayed or was missed.
+    if doc.get("payment_id") and doc.get("status") in ("pending", "open") and mollie.is_configured():
+        try:
+            payment = await mollie.get_payment(doc["payment_id"])
+            mollie_status = payment.get("status", "")
+            new_status = mollie.map_status(mollie_status)
+            if new_status != doc.get("status") or mollie_status != doc.get("payment_status"):
+                update = {"payment_status": mollie_status, "status": new_status}
+                if mollie_status == "paid" and not doc.get("paid_at"):
+                    update["paid_at"] = datetime.now(timezone.utc).isoformat()
+                await db.orders.update_one({"id": order_id}, {"$set": update})
+                doc.update(update)
+                if mollie_status == "paid":
+                    await _send_confirmation_once({"id": order_id})
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("Could not reconcile order %s with Mollie: %s", order_id, exc)
+    return Order(**doc)
+
+
+async def _send_confirmation_once(query: dict):
+    """Send the order confirmation email exactly once for a paid order."""
+    doc = await db.orders.find_one(query, {"_id": 0})
+    if not doc or doc.get("confirmation_sent"):
+        return
+    await db.orders.update_one({"id": doc["id"]}, {"$set": {"confirmation_sent": True}})
+    emailer.schedule_order_confirmation(doc)
+
+
+# ---------- Mollie payment webhook ----------
+async def process_mollie_webhook(payment_id: str) -> dict:
+    """Handle a Mollie webhook callback.
+
+    Mollie only sends the payment ``id``; we fetch the authoritative payment
+    from the Mollie API (using the live key) and update the matching order.
+    We never trust a status sent in the request body.
+    """
+    if not payment_id:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Missing payment id.")
+    if not mollie.is_configured():
+        logger.error("Mollie webhook received but MOLLIE_API_KEY is not configured.")
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "Payment provider not configured.")
+
+    try:
+        payment = await mollie.get_payment(payment_id)
+    except Exception as exc:  # noqa: BLE001
+        logger.error("Failed to fetch Mollie payment %s: %s", payment_id, exc)
+        # Non-2xx makes Mollie retry later, which is the desired behaviour here.
+        raise HTTPException(status.HTTP_502_BAD_GATEWAY, "Could not verify payment with Mollie.")
+
+    mollie_status = payment.get("status", "")
+    order_status = mollie.map_status(mollie_status)
+    order_id = (payment.get("metadata") or {}).get("order_id")
+
+    query = {"id": order_id} if order_id else {"payment_id": payment_id}
+    update = {"payment_status": mollie_status, "status": order_status}
+    if mollie_status == "paid":
+        update["paid_at"] = datetime.now(timezone.utc).isoformat()
+
+    result = await db.orders.update_one(query, {"$set": update})
+    if result.matched_count == 0:
+        logger.warning(
+            "Mollie webhook: no order matched payment %s (order_id=%s, status=%s)",
+            payment_id, order_id, mollie_status,
+        )
+    else:
+        logger.info("Mollie webhook: order %s -> %s (mollie=%s)", order_id, order_status, mollie_status)
+        if mollie_status == "paid":
+            await _send_confirmation_once(query)
+
+    # Always 200 once handled so Mollie stops retrying.
+    return {"status": "ok"}
+
+
+@api_router.post("/webhook/mollie")
+async def mollie_webhook(id: str = Form(default="")):
+    return await process_mollie_webhook(id)
+
+
 app.include_router(api_router)
+
+
+# Bare path alias in case the ingress forwards non-/api paths to the backend.
+@app.post("/webhook/mollie")
+async def mollie_webhook_root(id: str = Form(default="")):
+    return await process_mollie_webhook(id)
 
 # Mount static product images under /api so K8s ingress routes to backend
 STATIC_DIR = Path(__file__).parent / "static"

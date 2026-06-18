@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import Navigation from "@/components/site/Navigation";
 import Hero from "@/components/site/Hero";
 import TrustSignals from "@/components/site/TrustSignals";
@@ -18,6 +19,17 @@ export default function Home() {
   const [newest, setNewest] = useState([]);
   const [skincare, setSkincare] = useState([]);
   const [cartOpen, setCartOpen] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    const id = location.state?.scrollTo;
+    if (!id) return;
+    const t = setTimeout(() => {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: "smooth" });
+    }, 350);
+    return () => clearTimeout(t);
+  }, [location.state]);
 
   useEffect(() => {
     fetchBrands("fragrance").then(setParfumBrands).catch(() => {});
