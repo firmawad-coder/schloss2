@@ -5,7 +5,9 @@ from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
+import re
 import logging
+import unicodedata
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict, EmailStr
 from typing import List, Optional
@@ -37,6 +39,7 @@ class Product(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    slug: Optional[str] = None
     name: str
     subtitle: Optional[str] = ""
     brand: str
@@ -458,9 +461,22 @@ async def get_brands(category: Optional[str] = None):
     return brands
 
 
+def product_slug(name: str) -> str:
+    """Deterministic URL slug from a product name (accent/umlaut safe)."""
+    normalized = unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode()
+    return re.sub(r"[^a-z0-9]+", "-", normalized.lower()).strip("-")
+
+
+def build_product(seed: dict) -> Product:
+    slug = product_slug(seed["name"])
+    # Use the slug as a stable id so cart de-duplication and detail URLs are
+    # consistent across requests (seed entries have no persistent id).
+    return Product(**{**seed, "id": slug, "slug": slug})
+
+
 @api_router.get("/products", response_model=List[Product])
 async def get_products(filter: Optional[str] = None, category: Optional[str] = None):
-    products = [Product(**p) for p in PRODUCTS_SEED]
+    products = [build_product(p) for p in PRODUCTS_SEED]
     if category:
         products = [p for p in products if p.category == category]
     if filter == "new":
@@ -468,6 +484,14 @@ async def get_products(filter: Optional[str] = None, category: Optional[str] = N
     elif filter == "bestseller":
         products = [p for p in products if p.is_bestseller]
     return products
+
+
+@api_router.get("/products/{slug}", response_model=Product)
+async def get_product(slug: str):
+    for seed in PRODUCTS_SEED:
+        if product_slug(seed["name"]) == slug:
+            return build_product(seed)
+    raise HTTPException(status.HTTP_404_NOT_FOUND, "Produkt nicht gefunden.")
 
 
 @api_router.get("/reviews")

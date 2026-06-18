@@ -2,6 +2,7 @@ import "@/App.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "sonner";
 import Home from "@/pages/Home";
+import ProductDetail from "@/pages/ProductDetail";
 import Login from "@/pages/Login";
 import MyAccount from "@/pages/MyAccount";
 import OrderHistory from "@/pages/OrderHistory";
@@ -15,6 +16,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/product/:slug" element={<ProductDetail />} />
           <Route path="/login" element={<Login />} />
           <Route path="/account" element={<RequireAuth><MyAccount /></RequireAuth>} />
           <Route path="/account/orders" element={<RequireAuth><OrderHistory /></RequireAuth>} />

@@ -1,9 +1,12 @@
+import { Link } from "react-router-dom";
 import { Plus, Star } from "lucide-react";
 import { cartStore, formatEUR } from "@/lib/cart";
 import { resolveImage } from "@/lib/api";
 import { toast } from "sonner";
 
 export default function ProductCard({ product, index }) {
+  const href = `/product/${product.slug || product.id}`;
+
   const handleAdd = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -13,7 +16,7 @@ export default function ProductCard({ product, index }) {
 
   return (
     <article className="group relative" data-testid={`bas-product-${index}`}>
-      <a href="#" className="block">
+      <Link to={href} className="block" data-testid={`bas-product-link-${index}`}>
         <div className="relative overflow-hidden bg-[#ede5d5] aspect-[3/4] bas-img-hover">
           {product.tag && (
             <span className="absolute top-5 left-5 z-10 text-[9px] tracking-[0.4em] uppercase text-[#1c1714] bg-[#f5f0e8]/95 backdrop-blur-sm px-4 py-2 font-medium">
@@ -31,7 +34,7 @@ export default function ProductCard({ product, index }) {
             In den Warenkorb
           </button>
         </div>
-      </a>
+      </Link>
 
       <div className="pt-9">
         <div className="flex items-start justify-between gap-4 mb-3">
@@ -45,7 +48,7 @@ export default function ProductCard({ product, index }) {
           )}
         </div>
         <h3 className="font-display text-[24px] lg:text-[26px] text-[#1c1714] leading-[1.15] font-light mb-2 tracking-[-0.005em]">
-          {product.name}
+          <Link to={href} className="hover:text-[#a8814a] transition-colors">{product.name}</Link>
         </h3>
         {product.subtitle && (
           <p className="font-display italic text-[#6a5f55] text-[15px] mb-5 font-light">{product.subtitle}</p>
