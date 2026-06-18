@@ -1,0 +1,19 @@
+{
+  "name": "bas-emails",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "React Email templates for Beauty Am Schloss transactional emails",
+  "scripts": {
+    "build": "tsx build.mjs"
+  },
+  "dependencies": {
+    "@react-email/components": "^1.0.12",
+    "@react-email/render": "^2.0.9",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "tsx": "4.19.2"
+  }
+}

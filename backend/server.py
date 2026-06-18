@@ -14,6 +14,7 @@ from datetime import datetime, timezone
 
 from auth import hash_password, verify_password, create_access_token, decode_token
 import mollie
+import emailer
 
 
 ROOT_DIR = Path(__file__).parent
@@ -629,6 +630,11 @@ async def create_order(payload: OrderCreate, user: Optional[dict] = Depends(get_
         order_doc["payment_id"] = payment["id"]
         order_doc["payment_status"] = payment["status"]
         checkout_url = payment["checkout_url"]
+    else:
+        # No payment step: the order is placed now, send the confirmation email.
+        order_doc["confirmation_sent"] = True
+        await db.orders.update_one({"id": order_id}, {"$set": {"confirmation_sent": True}})
+        emailer.schedule_order_confirmation(order_doc)
 
     return Order(**order_doc, checkout_url=checkout_url)
 
@@ -661,9 +667,20 @@ async def get_order(order_id: str, user: Optional[dict] = Depends(get_optional_u
                     update["paid_at"] = datetime.now(timezone.utc).isoformat()
                 await db.orders.update_one({"id": order_id}, {"$set": update})
                 doc.update(update)
+                if mollie_status == "paid":
+                    await _send_confirmation_once({"id": order_id})
         except Exception as exc:  # noqa: BLE001
             logger.warning("Could not reconcile order %s with Mollie: %s", order_id, exc)
     return Order(**doc)
+
+
+async def _send_confirmation_once(query: dict):
+    """Send the order confirmation email exactly once for a paid order."""
+    doc = await db.orders.find_one(query, {"_id": 0})
+    if not doc or doc.get("confirmation_sent"):
+        return
+    await db.orders.update_one({"id": doc["id"]}, {"$set": {"confirmation_sent": True}})
+    emailer.schedule_order_confirmation(doc)
 
 
 # ---------- Mollie payment webhook ----------
@@ -704,6 +721,8 @@ async def process_mollie_webhook(payment_id: str) -> dict:
         )
     else:
         logger.info("Mollie webhook: order %s -> %s (mollie=%s)", order_id, order_status, mollie_status)
+        if mollie_status == "paid":
+            await _send_confirmation_once(query)
 
     # Always 200 once handled so Mollie stops retrying.
     return {"status": "ok"}
