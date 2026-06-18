@@ -18,8 +18,8 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/account" element={<RequireAuth><MyAccount /></RequireAuth>} />
           <Route path="/account/orders" element={<RequireAuth><OrderHistory /></RequireAuth>} />
-          <Route path="/checkout" element={<RequireAuth><Checkout /></RequireAuth>} />
-          <Route path="/checkout/complete" element={<RequireAuth><CheckoutComplete /></RequireAuth>} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/checkout/complete" element={<CheckoutComplete />} />
         </Routes>
       </BrowserRouter>
       <Toaster

@@ -145,7 +145,9 @@ class Order(BaseModel):
 
     id: str
     order_number: str
-    user_id: str
+    user_id: Optional[str] = None
+    is_guest: bool = False
+    guest_email: Optional[str] = None
     items: List[OrderItem]
     shipping: ShippingInfo
     subtotal: float
@@ -514,6 +516,18 @@ async def get_current_user(
     return user
 
 
+async def get_optional_user(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
+):
+    """Return the current user if a valid token is present, else None (guest)."""
+    if credentials is None:
+        return None
+    user_id = decode_token(credentials.credentials)
+    if not user_id:
+        return None
+    return await db.users.find_one({"id": user_id}, {"_id": 0})
+
+
 @api_router.post("/auth/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
 async def register(req: RegisterRequest):
     email = req.email.lower().strip()
@@ -560,9 +574,13 @@ async def update_me(update: ProfileUpdate, user: dict = Depends(get_current_user
 
 # ---------- Orders ----------
 @api_router.post("/orders", response_model=Order, status_code=status.HTTP_201_CREATED)
-async def create_order(payload: OrderCreate, user: dict = Depends(get_current_user)):
+async def create_order(payload: OrderCreate, user: Optional[dict] = Depends(get_optional_user)):
     if not payload.items:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Der Warenkorb ist leer.")
+    is_guest = user is None
+    guest_email = (payload.shipping.email or "").strip().lower() if is_guest else None
+    if is_guest and not guest_email:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "E-Mail ist für die Bestellung erforderlich.")
     subtotal = round(sum(item.price * item.qty for item in payload.items), 2)
     shipping_cost = 0.0 if subtotal >= FREE_SHIPPING_THRESHOLD else SHIPPING_COST
     total = round(subtotal + shipping_cost, 2)
@@ -573,7 +591,9 @@ async def create_order(payload: OrderCreate, user: dict = Depends(get_current_us
     order_doc = {
         "id": order_id,
         "order_number": order_number,
-        "user_id": user["id"],
+        "user_id": user["id"] if user else None,
+        "is_guest": is_guest,
+        "guest_email": guest_email,
         "items": [item.model_dump() for item in payload.items],
         "shipping": payload.shipping.model_dump(),
         "subtotal": subtotal,
@@ -620,9 +640,13 @@ async def list_orders(user: dict = Depends(get_current_user)):
 
 
 @api_router.get("/orders/{order_id}", response_model=Order)
-async def get_order(order_id: str, user: dict = Depends(get_current_user)):
-    doc = await db.orders.find_one({"id": order_id, "user_id": user["id"]}, {"_id": 0})
+async def get_order(order_id: str, user: Optional[dict] = Depends(get_optional_user)):
+    doc = await db.orders.find_one({"id": order_id}, {"_id": 0})
     if not doc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Bestellung nicht gefunden.")
+    # Access control: orders tied to an account require that account; guest
+    # orders (no user_id) are retrievable by their unguessable id (capability).
+    if doc.get("user_id") and (not user or user["id"] != doc["user_id"]):
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Bestellung nicht gefunden.")
     # Reconcile with Mollie when still awaiting payment, so the return/success
     # page is correct even if the webhook is delayed or was missed.

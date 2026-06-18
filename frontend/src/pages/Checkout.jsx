@@ -120,13 +120,19 @@ export default function Checkout() {
           <p className="text-[11px] tracking-[0.3em] uppercase text-[#8a7a6c] mb-12">
             Bestellnummer · <span className="text-[#1c1714]">{orderNumber}</span>
           </p>
+          {!user && (
+            <p className="text-[12px] text-[#6a5f55] font-light mb-8 max-w-sm mx-auto">
+              Sie haben als Gast bestellt. Bewahren Sie Ihre Bestellnummer auf —
+              oder erstellen Sie ein Konto, um Ihre Bestellungen zu verfolgen.
+            </p>
+          )}
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
-              to="/account/orders"
+              to={user ? "/account/orders" : "/login"}
               className="inline-flex items-center justify-center gap-3 bg-[#1c1714] text-[#f5f0e8] hover:bg-[#a8814a] transition-colors duration-500 px-9 py-4 uppercase text-[10px] tracking-[0.32em]"
               data-testid="bas-checkout-view-orders"
             >
-              Bestellung ansehen
+              {user ? "Bestellung ansehen" : "Konto erstellen"}
             </Link>
             <Link
               to="/"
@@ -175,9 +181,24 @@ export default function Checkout() {
           <span className="h-px w-12 bg-[#a8814a]" />
           <span className="font-italiana text-[#a8814a] tracking-[0.5em] text-[11px]">— CHECKOUT —</span>
         </div>
-        <h1 className="font-display text-[clamp(2.4rem,5vw,4rem)] font-light leading-[0.98] text-[#1c1714] mb-14">
+        <h1 className="font-display text-[clamp(2.4rem,5vw,4rem)] font-light leading-[0.98] text-[#1c1714] mb-8">
           Zur <span className="italic text-[#a8814a]">Kasse.</span>
         </h1>
+
+        {!user && (
+          <div className="border border-[#ddd2bf] bg-[#faf6ef] px-6 py-5 mb-12 flex flex-col sm:flex-row sm:items-center justify-between gap-3" data-testid="bas-checkout-guest-banner">
+            <p className="text-[13px] text-[#4a3f37] font-light">
+              Sie bestellen als <span className="text-[#1c1714]">Gast</span> — kein Konto erforderlich.
+            </p>
+            <Link
+              to="/login?redirect=/checkout"
+              className="text-[10px] tracking-[0.3em] uppercase text-[#1c1714] hover:text-[#a8814a] bas-link transition-colors shrink-0"
+              data-testid="bas-checkout-login-link"
+            >
+              Bereits Kunde? Anmelden
+            </Link>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14" data-testid="bas-checkout-form">
           {/* Form fields */}
